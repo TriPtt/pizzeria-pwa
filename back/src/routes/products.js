@@ -5,10 +5,12 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const authorizeRole = require("../middlewares/authorizeRole");
 
 // CRUD
-router.post('/', authMiddleware, authorizeRole(['admin']), productController.createProduct);
+router.post('/', authMiddleware, productController.createProduct);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
-router.put('/:id', authMiddleware, authorizeRole(['admin']), productController.updateProduct);
-router.delete('/:id', authMiddleware, authorizeRole(['admin']), productController.deleteProduct);
+router.get('/type/:type', productController.getProductsByType);
+router.put('/:id', authMiddleware, productController.updateProduct);
+router.delete('/:id', authMiddleware, productController.deleteProduct);
+
 
 module.exports = router;

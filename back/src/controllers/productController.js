@@ -88,10 +88,23 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// Get all products by type
+const getProductsByType = async (req, res) => {
+  const { type } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM products WHERE type = $1 ORDER BY created_at DESC', [type]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  getProductsByType
 };

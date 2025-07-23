@@ -11,8 +11,8 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const utilisateur = verifyToken(token);
-    req.user = utilisateur;
+    const user = verifyToken(token);
+    req.user = user;
     next();
   } catch (err) {
     return res.status(403).json({ error: "Token invalide ou expiré." });
