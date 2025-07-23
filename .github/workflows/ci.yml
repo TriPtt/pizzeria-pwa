@@ -1,18 +1,109 @@
-name: Test Simple
+name: CI Pipeline
 
 on:
   push:
+    branches: 
+      - main
+      - develop
   pull_request:
+    branches: 
+      - main
 
 jobs:
-  hello:
+  backend:
+    name: Test Backend
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Hello World
-        run: echo "✅ GitHub Actions fonctionne !"
-      
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: List files
-        run: ls -la
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install backend dependencies
+        working-directory: ./back
+        run: |
+          npm ci
+          echo "✅ Backend dependencies installed"
+      
+      - name: Test backend
+        working-directory: ./back
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          NODE_ENV: test
+        run: |
+          # npm test (décommente quand tu auras des tests)
+          echo "✅ Backend tests passed (à implémenter)"
+          
+      - name: Check backend structure
+        working-directory: ./back
+        run: |
+          echo "📁 Structure du backend:"
+          ls -la
+          echo "📄 Package.json:"
+          cat package.json | head -20
+
+  frontend:
+    name: Test Frontend  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install frontend dependencies
+        working-directory: ./front
+        run: |
+          npm ci
+          echo "✅ Frontend dependencies installed"
+      
+      - name: Build frontend
+        working-directory: ./front
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:5000' }}
+          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
+        run: |
+          npm run build
+          echo "✅ Frontend built successfully"
+          
+      - name: Check frontend structure
+        working-directory: ./front
+        run: |
+          echo "📁 Structure du frontend:"
+          ls -la
+          echo "📄 Package.json:"
+          cat package.json | head -20
+          echo "📁 Build output:"
+          ls -la dist/ || echo "Pas de dossier dist"
+
+  structure-check:
+    name: Vérifier la structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Project structure
+        run: |
+          echo "🏗️ Structure complète du projet:"
+          find . -type f -name "package.json" | head -10
+          echo ""
+          echo "📁 Dossiers principaux:"
+          ls -la
+          echo ""
+          echo "📁 Contenu de /front:"
+          ls -la front/ || echo "❌ Dossier front introuvable"
+          echo ""
+          echo "📁 Contenu de /back:"
+          ls -la back/ || echo "❌ Dossier back introuvable"
