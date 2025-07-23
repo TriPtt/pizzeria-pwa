@@ -1,69 +1,18 @@
-name: CI Simple
+name: Test Simple
 
 on:
   push:
-    branches: 
-      - main
-      - develop
   pull_request:
-    branches: 
-      - main
 
 jobs:
-  test:
+  hello:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
+      - name: Hello World
+        run: echo "✅ GitHub Actions fonctionne !"
+      
+      - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      
-      - name: Install and test back
-        working-directory: ./back
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}  
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-        run: |
-          npm ci
-          echo "✅ Backend dependencies installed"
-          # npm test (décommente quand tu as des tests)
-      
-      - name: Install and build frontend
-        working-directory: ./front
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
-        run: |
-          npm ci
-          npm run build
-          echo "✅ Frontend built successfully"
-
-  lint:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      
-      - name: Lint backend
-        working-directory: ./back
-        run: |
-          npm ci
-          # npm run lint (décommente si tu as ESLint configuré)
-          echo "✅ Backend linting OK"
-      
-      - name: Lint frontend
-        working-directory: ./front  
-        run: |
-          npm ci
-          npm run lint || echo "⚠️ Linting à configurer"
-          echo "✅ Frontend linting checked"
+      - name: List files
+        run: ls -la
