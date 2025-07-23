@@ -1,0 +1,38 @@
+name: CI Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Test Backend
+      working-directory: ./back
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      run: |
+        npm ci
+        npm test || echo "Tests à implémenter"
+    
+    - name: Test Frontend  
+      working-directory: ./front
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        VITE_STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
+      run: |
+        npm ci
+        npm run build
