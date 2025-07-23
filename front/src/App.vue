@@ -23,11 +23,6 @@ const handleTabChange = (tab) => {
   console.log('🔄 Changement onglet:', tab.label)
   // Ici tu peux ajouter des analytics, etc.
 }
-
-// Provide pour que les composants enfants puissent modifier le cart count
-provide('updateCartCount', (count) => {
-  cartCount.value = count
-})
 </script>
 
 <style>

@@ -34,6 +34,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useCartStore } from '../stores/cartStore'
+
+const cartStore = useCartStore()
 
 // Props
 const props = defineProps({
@@ -96,12 +99,11 @@ const navItems = computed(() => [
   },
   {
     id: 'cart',
-    route: 'cart',
-    path: '/cart',
-    label: 'Panier', 
     icon: 'ri-shopping-bag-line',
     activeIcon: 'ri-shopping-bag-fill',
-    badge: props.cartCount
+    label: 'Panier',
+    path: '/cart',
+    badge: cartStore.itemCount 
   }
 ])
 

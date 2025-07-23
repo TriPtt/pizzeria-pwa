@@ -1,9 +1,9 @@
 <template>
   <div class="home">
-    <!-- Header -->
+    <!-- Header avec compteur cart dynamique -->
     <AppHeader 
       title="Accueil"
-      :cart-count="cartItems.length"
+      :cart-count="cartStore.itemCount"
       @toggle-menu="handleMenuToggle"
       @open-cart="handleCartOpen" 
       @open-search="handleSearchOpen"
@@ -42,7 +42,7 @@
       @see-all="handleSeeAll"
     />
 
-    <!-- 🆕 App Promo avec thème -->
+    <!-- App Promo -->
     <AppPromoSection 
       title="Téléchargez l'app LA FAVOLA pour commander plus rapidement !"
       button-text="Installer l'app"
@@ -52,7 +52,7 @@
       @dismiss="handleAppPromoDismiss"
     />
 
-    <!-- 🆕 Footer avec toutes les infos -->
+    <!-- Footer -->
     <FooterSection 
       address="123 Rue de la Pizza, 75001 Paris"
       phone="01 23 45 67 89"
@@ -73,6 +73,11 @@ import CategoriesSection from '../components/CategoriesSection.vue'
 import ProductsSection from '../components/ProductsSection.vue'
 import AppPromoSection from '../components/AppPromoSection.vue'
 import FooterSection from '../components/FooterSection.vue'
+import { useCartStore } from '../stores/cartStore'
+import { useFavoritesStore } from '../stores/favoritesStore'
+
+const cartStore = useCartStore()
+const favoritesStore = useFavoritesStore()
 
 // États
 const cartItems = ref([])
@@ -81,9 +86,6 @@ const loading = ref(true)
 const error = ref(null)
 const activeCategory = ref(null)
 const favorites = ref([])
-
-// Injection pour mettre à jour le cart count global
-const updateCartCount = inject('updateCartCount')
 
 // Modifier la fonction addToCart
 const addToCart = (product) => {
@@ -114,7 +116,7 @@ const categoriesWithCount = computed(() => {
     {
       id: 1,
       name: 'Pizzas',
-      type: 'pizza',
+      type: 'pizza', 
       icon: 'ri-pie-chart-2-line',
       color: '#ef4444',
       count: pizzasCount
@@ -138,37 +140,27 @@ const categoriesWithCount = computed(() => {
   ]
 })
 
-// 🎯 Handlers Header
 const handleMenuToggle = () => console.log('🍔 Menu toggle')
 const handleCartOpen = () => console.log('🛒 Ouvrir panier')
 const handleSearchOpen = () => console.log('🔍 Ouvrir recherche')
 
-// 🎯 Handlers Featured
 const handleFeaturedClick = () => console.log('🍕 Featured clicked!')
 
-// 🎯 Handlers Categories
+
 const handleCategoryClick = (category) => {
   console.log('📂 Category clicked:', category.name)
   activeCategory.value = activeCategory.value === category.type ? null : category.type
   scrollToSection(category.type)
 }
 
-// 🎯 Handlers Products
 const openProduct = (product) => {
   console.log('🍕 Ouvrir produit:', product.name)
   router.push(`/product/${product.id}`)
 }
 
-
 const toggleFavorite = (product) => {
   console.log('❤️ Toggle favorite:', product.name)
-  const existingIndex = favorites.value.findIndex(fav => fav.id === product.id)
-  
-  if (existingIndex > -1) {
-    favorites.value.splice(existingIndex, 1)
-  } else {
-    favorites.value.push(product)
-  }
+  favoritesStore.toggleFavorite(product)
 }
 
 const handleSeeAll = (type) => {
@@ -176,15 +168,12 @@ const handleSeeAll = (type) => {
   router.push(`/products/${type}`)
 }
 
-// 🎯 Handlers App Promo
 const handleAppInstall = () => {
   console.log('📱 Installation de l\'app...')
-  // Ici tu peux ajouter la logique PWA
 }
 
 const handleAppPromoDismiss = () => {
   console.log('❌ Promo app fermée')
-  // Sauvegarder en localStorage que l'utilisateur a fermé
 }
 
 // 🔧 Utilitaires
@@ -217,6 +206,12 @@ const fetchProducts = async () => {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  // Charge les données depuis localStorage
+  cartStore.loadFromStorage()
+  favoritesStore.loadFromStorage()
+})
 
 onMounted(() => {
   fetchProducts()
