@@ -18,11 +18,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BottomNavigation from './components/BottomNavigation.vue'
 import ProductOverlay from './components/ProductOverlay.vue'
 import { useOverlayStore } from './stores/overlayStore'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from './stores/authStore'
+
+onMounted(() => {
+  const authStore = useAuthStore()
+  authStore.initAuth()
+  console.log('✅ Auth initialized')
+})
 
 
 const route = useRoute()

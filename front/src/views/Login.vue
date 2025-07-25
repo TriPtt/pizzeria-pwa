@@ -7,7 +7,7 @@
       <form @submit.prevent="handleLogin" class="form">
         <div class="input-group">
           <input 
-            v-model="form.email" 
+            v-model="email"
             type="email" 
             placeholder="Adresse e-mail" 
             class="input-field"
@@ -17,7 +17,7 @@
         
         <div class="input-group">
           <input 
-            v-model="form.password_hash" 
+            v-model="password"
             type="password" 
             placeholder="Mot de passe" 
             class="input-field"
@@ -28,9 +28,13 @@
         <div class="forgot-password">
           <a href="#" class="forgot-link">Mot de passe oublié ?</a>
         </div>
+
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
         
-        <button type="submit" class="login-button">
-          Se connecter
+        <button type="submit" class="login-button" :disabled="authStore.isLoading">
+          {{ authStore.isLoading ? 'Connexion...' : 'Se connecter' }}
         </button>
       </form>
       
@@ -44,24 +48,37 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
 import { useRouter } from 'vue-router'
 
+const authStore = useAuthStore()
 const router = useRouter()
-const form = ref({
-  email: '',
-  password: ''
-})
+
+const email = ref('')
+const password = ref('')
+const error = ref('')
 
 const handleLogin = async () => {
   try {
-    const res = await axios.post('http://localhost:5000/api/auth/login', form.value)
-    console.log(res.data)
-    localStorage.setItem('token', res.data.token) // Stocker le token si besoin
+    error.value = ''
+    
+    // ✅ Validation basique
+    if (!email.value || !password.value) {
+      error.value = 'Veuillez remplir tous les champs'
+      return
+    }
+
+    // Appel à l'action de connexion du store
+    await authStore.login(email.value, password.value)
+    if (authStore.error) {
+      error.value = authStore.error
+      return
+    }
+    
+    // Redirection après login
     router.push('/')
   } catch (err) {
-    console.error(err.response?.data || err.message)
-    alert('Login failed')
+    error.value = err.message
   }
 }
 </script>
@@ -107,6 +124,27 @@ const handleLogin = async () => {
   flex-direction: column;
   gap: 1.5rem;
 }
+
+.error-message {
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border: 1px solid #fecaca;
+  margin: 0.5rem 0;
+}
+
+/* Le reste de tes styles... */
+.login-page {
+  height: 100vh; /* ✅ Hauteur complète */
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 
 .input-group {
   display: flex;

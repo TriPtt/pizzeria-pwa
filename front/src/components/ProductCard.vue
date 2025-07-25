@@ -47,10 +47,6 @@ const fallbackImage = computed(() => {
 
 const isAnimating = ref(false)
 const justAdded = ref(false)
-// Méthodes
-const handleClick = () => {
-  emit('click', props.product)
-}
 
 const handleAddToCart = async () => {
   if (props.product.available && !isAnimating.value) {
