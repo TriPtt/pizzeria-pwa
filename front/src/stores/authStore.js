@@ -8,7 +8,11 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
 
   // Getters
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => {
+    const result = !!user.value && !!token.value
+    console.log('🔍 isAuthenticated computed:', result, { user: user.value, token: token.value })
+    return result
+  })
   const userName = computed(() => user.value?.name || '')
   const userEmail = computed(() => user.value?.email || '')
 
@@ -28,13 +32,13 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       const data = await response.json()
+      console.log('🔍 Login data received:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Erreur de connexion')
       }
 
-      // ✅ Sauvegarder les données comme ton API les renvoie
-      setAuth(data.user, data.token)
+      setAuth(data.utilisateur, data.token)
       
       return data
     } catch (error) {
@@ -48,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData) => {
     isLoading.value = true
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('http://localhost:3001/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,13 +61,13 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de l\'inscription')
-      }
       
-      // Auto-login après inscription
-      setAuth(data.user, data.token)
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur d\'inscription')
+      }
+
+      // ✅ FIX: Utilise "utilisateur" ici aussi
+      setAuth(data.utilisateur, data.token)
       
       return data
     } catch (error) {
@@ -74,12 +78,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+
   const logout = () => {
     user.value = null
     token.value = null
     
     localStorage.removeItem('user')
-    localStorage.removeItem('token')
+    // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
+    localStorage.removeItem('authToken')
     
     console.log('👋 User logged out')
   }
@@ -116,28 +122,43 @@ export const useAuthStore = defineStore('auth', () => {
 
 
   const setAuth = (userData, authToken) => {
+    console.log('🔍 setAuth called with:')
+    console.log('- userData:', userData)
+    console.log('- authToken:', authToken)
+    
     user.value = userData
     token.value = authToken
     
-    localStorage.setItem('user', JSON.stringify(userData))
-    localStorage.setItem('token', authToken)
+    if (userData) {
+      localStorage.setItem('user', JSON.stringify(userData))
+      console.log('✅ User saved:', userData.name, userData.email)
+    }
     
-    console.log('✅ User authenticated:', userData)
+    if (authToken) {
+      // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
+      localStorage.setItem('authToken', authToken)
+      console.log('✅ Token saved in localStorage as authToken')
+    }
   }
+
 
   const initAuth = () => {
     const savedUser = localStorage.getItem('user')
-    const savedToken = localStorage.getItem('token')
+    // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
+    const savedToken = localStorage.getItem('authToken')
+    
+    console.log('🔍 Init auth - savedUser:', savedUser ? 'YES' : 'NO')
+    console.log('🔍 Init auth - savedToken:', savedToken ? 'YES' : 'NO')
     
     if (savedUser && savedToken) {
       try {
         user.value = JSON.parse(savedUser)
         token.value = savedToken
-        console.log('🔄 Auth restored from localStorage:', user.value)
+        console.log('🔄 Auth restored from localStorage:', user.value.name)
       } catch (error) {
         console.error('❌ Erreur parsing user data:', error)
         localStorage.removeItem('user')
-        localStorage.removeItem('token')
+        localStorage.removeItem('authToken')
       }
     } else {
       console.log('👤 No saved auth found')

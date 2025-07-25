@@ -88,3 +88,33 @@ CREATE TRIGGER trg_reservations_updated_at
 BEFORE UPDATE ON reservations
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+-- Table wishlist pour PostgreSQL
+CREATE TABLE IF NOT EXISTS wishlists (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE (user_id, product_id)
+);
+
+-- Index pour améliorer les performances
+CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlists(user_id);
+CREATE INDEX IF NOT EXISTS idx_wishlist_product ON wishlists(product_id);
+
+-- Trigger pour updated_at automatique
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_wishlists_updated_at 
+    BEFORE UPDATE ON wishlists 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();

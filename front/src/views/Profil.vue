@@ -170,6 +170,16 @@ onMounted(() => {
     })
   }
 })
+
+onMounted(() => {
+  console.log('🔍 DEBUG PROFILE:')
+  console.log('- authStore:', authStore)
+  console.log('- authStore.user:', authStore.user)
+  console.log('- authStore.isAuthenticated:', authStore.isAuthenticated)
+  console.log('- authStore.token:', authStore.token)
+  console.log('- localStorage user:', localStorage.getItem('user'))
+  console.log('- localStorage token:', localStorage.getItem('token'))
+})
 </script>
 
 <style scoped>

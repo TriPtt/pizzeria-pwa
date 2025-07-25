@@ -75,7 +75,6 @@ const handleLogin = async () => {
       return
     }
     
-    // Redirection après login
     router.push('/')
   } catch (err) {
     error.value = err.message

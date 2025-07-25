@@ -24,11 +24,13 @@ import ProductOverlay from './components/ProductOverlay.vue'
 import { useOverlayStore } from './stores/overlayStore'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/authStore'
+import { useWishlistStore } from './stores/wishlistStore'
 
 onMounted(() => {
   const authStore = useAuthStore()
   authStore.initAuth()
-  console.log('✅ Auth initialized')
+  const wishlistStore = useWishlistStore()
+  wishlistStore.initializeWishlist()
 })
 
 
@@ -38,9 +40,6 @@ const overlayStore = useOverlayStore()
 const showBottomNav = computed(() => {
   return route.name === 'home' // ou route.path === '/'
 })
-
-// État global du panier (tu peux remplacer par Pinia plus tard)
-const cartCount = ref(3) // Exemple
 
 // Gestion du changement d'onglet
 const handleTabChange = (tab) => {

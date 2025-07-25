@@ -5,6 +5,8 @@ import HomeView from '../views/Home.vue';
 import CartView from '../views/Cart.vue';
 import OrderView from '../views/Order.vue';
 import ProfilView from '../views/Profil.vue';
+import WishlistView from '../views/Wishlist.vue';
+import { useAuthStore } from '../stores/authStore'
 
 const routes = [
   {
@@ -37,6 +39,11 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: ProfilView
+  },
+  {
+    path: '/wishlist',
+    name: 'wishlist',
+    component: WishlistView
   }
 ]
 
@@ -45,17 +52,16 @@ const router = createRouter({
   routes
 })
 
-// 🔐 Guard globale
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
-
+  const authStore = useAuthStore()
+  const isAuthenticated = authStore.isAuthenticated
+  
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' }) // si la route est protégée et pas connecté → redirect login
+    next({ name: 'login' })
   } else if ((to.name === 'login' || to.name === 'register') && isAuthenticated) {
-    next({ name: 'home' }) // si connecté et essaie d'aller sur login/register → redirect home
+    next({ name: 'home' })
   } else {
-    next() // sinon continue normalement
+    next()
   }
 })
-
 export default router
