@@ -1,19 +1,36 @@
 <template>
   <div id="app">
     <router-view />
+
+    <ProductOverlay 
+      :show="overlayStore.showProductOverlay"
+      :product="overlayStore.selectedProduct"
+      @close="overlayStore.closeProductOverlay"
+    />
     
-    <!-- 🆕 Bottom Navigation -->
     <BottomNavigation 
       :cart-count="cartCount"
       :hide-on-scroll="true"
       @tab-change="handleTabChange"
+      v-if="showBottomNav"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import BottomNavigation from './components/BottomNavigation.vue'
+import ProductOverlay from './components/ProductOverlay.vue'
+import { useOverlayStore } from './stores/overlayStore'
+import { useRoute } from 'vue-router'
+
+
+const route = useRoute()
+const overlayStore = useOverlayStore()
+
+const showBottomNav = computed(() => {
+  return route.name === 'home' // ou route.path === '/'
+})
 
 // État global du panier (tu peux remplacer par Pinia plus tard)
 const cartCount = ref(3) // Exemple
@@ -26,19 +43,28 @@ const handleTabChange = (tab) => {
 </script>
 
 <style>
-#app {
-  /* Espace pour la bottom nav */
-  padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  position: fixed;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  width: 100%;
 }
 
-/* Reset par défaut */
-* {
+#app {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page-with-fixed-footer {
+  padding-bottom: 100px;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+
 </style>

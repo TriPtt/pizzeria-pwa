@@ -104,7 +104,7 @@ const addToCart = (product) => {
 const router = useRouter()
 
 // Images
-const featuredImage = ref('https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop')
+const featuredImage = ref('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop')
 
 // Catégories avec compteurs
 const categoriesWithCount = computed(() => {
@@ -141,7 +141,9 @@ const categoriesWithCount = computed(() => {
 })
 
 const handleMenuToggle = () => console.log('🍔 Menu toggle')
-const handleCartOpen = () => console.log('🛒 Ouvrir panier')
+const handleCartOpen = () => {
+  router.push('/cart')
+}
 const handleSearchOpen = () => console.log('🔍 Ouvrir recherche')
 
 const handleFeaturedClick = () => console.log('🍕 Featured clicked!')
@@ -223,7 +225,9 @@ onMounted(() => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: #f8f9fa;
   min-height: 100vh;
-  padding-bottom: 20px;
+  padding-bottom: 80px;
   line-height: 1.5;
+  box-sizing: border-box;
+  overscroll-behavior: none;
 }
 </style>

@@ -3,6 +3,14 @@ import { computed, ref } from 'vue'
 import LazyImage from './LazyImage.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
+import { useOverlayStore } from '../stores/overlayStore'
+
+
+const overlayStore = useOverlayStore()
+
+const openOverlay = () => {
+  overlayStore.openProductOverlay(props.product)
+}
 
 const props = defineProps({
   product: {
@@ -81,7 +89,7 @@ const handleImageError = () => {
 <template>
   <article 
     class="product-card stagger-item glow-hover"
-    @click="handleClick"
+    @click="openOverlay"
     :class="{ 
       'loading': cartStore.isLoading,
       'just-added': justAdded,

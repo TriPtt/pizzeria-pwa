@@ -68,13 +68,13 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-page {
-  min-height: 100vh;
+  height: 100%;
   background-color: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
 }
 
 .login-container {
@@ -214,9 +214,6 @@ const handleLogin = async () => {
 
 /* Responsive */
 @media (max-width: 480px) {
-  .login-page {
-    padding: 0.5rem;
-  }
   
   .login-container {
     padding: 2rem 1.5rem;

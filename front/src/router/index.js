@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/Login.vue';
 import RegisterView from '../views/Register.vue';
 import HomeView from '../views/Home.vue';
-
+import CartView from '../views/Cart.vue';
 
 const routes = [
   {
@@ -21,7 +21,11 @@ const routes = [
     name: 'register',
     component: RegisterView
   },
-  // ajoute d'autres routes ici
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: CartView
+  }
 ]
 
 const router = createRouter({
