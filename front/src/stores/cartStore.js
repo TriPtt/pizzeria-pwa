@@ -95,6 +95,10 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  const totalQuantity = computed(() => {
+    return items.value.reduce((total, item) => total + item.quantity, 0)
+  })
+
   return {
     // État
     items,
@@ -103,6 +107,7 @@ export const useCartStore = defineStore('cart', () => {
     // Getters
     itemCount,
     totalPrice,
+    totalQuantity,
     isEmpty,
     
     // Méthodes

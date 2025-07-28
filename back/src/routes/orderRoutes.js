@@ -7,5 +7,6 @@ const authorizeRole = require("../middlewares/authorizeRole");
 router.post("/", authMiddleware, orderController.createOrder);
 router.get("/", authMiddleware, authorizeRole(["admin"]), orderController.getAllOrders);
 router.get("/:id", authMiddleware, orderController.getOrderById);
+router.get('/user/my-orders', authMiddleware, orderController.getUserOrders);
 
 module.exports = router;

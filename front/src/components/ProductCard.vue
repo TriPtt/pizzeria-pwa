@@ -2,7 +2,14 @@
 import { computed, ref } from 'vue'
 import LazyImage from './LazyImage.vue'
 import { useCartStore } from '../stores/cartStore'
-import { useFavoritesStore } from '../stores/favoritesStore'
+import { useWishlistStore } from '../stores/wishlistStore'  // ✅ Changé
+import { useOverlayStore } from '../stores/overlayStore'
+
+const overlayStore = useOverlayStore()
+
+const openOverlay = () => {
+  overlayStore.openProductOverlay(props.product)
+}
 
 const props = defineProps({
   product: {
@@ -15,11 +22,11 @@ const emit = defineEmits(['click'])
 
 // 🚀 PINIA STORES
 const cartStore = useCartStore()
-const favoritesStore = useFavoritesStore()
+const wishlistStore = useWishlistStore()  // ✅ Changé
 
 // Computed
-const isFavorite = computed(() => {
-  return favoritesStore.isFavorite(props.product.id)
+const isInWishlist = computed(() => {
+  return wishlistStore.isInWishlist(props.product.id) || false
 })
 
 const cartQuantity = computed(() => {
@@ -39,10 +46,7 @@ const fallbackImage = computed(() => {
 
 const isAnimating = ref(false)
 const justAdded = ref(false)
-// Méthodes
-const handleClick = () => {
-  emit('click', props.product)
-}
+const wishlistAnimating = ref(false)  // ✅ Nouveau
 
 const handleAddToCart = async () => {
   if (props.product.available && !isAnimating.value) {
@@ -65,8 +69,31 @@ const handleAddToCart = async () => {
   }
 }
 
-const handleFavorite = () => {
-  favoritesStore.toggleFavorite(props.product)
+// ✅ Nouvelle fonction pour la wishlist
+const handleWishlist = async () => {
+  if (wishlistAnimating.value) return
+  
+  wishlistAnimating.value = true
+  
+  try {
+    await wishlistStore.toggleWishlist(props.product.id)
+    
+    // Petit délai pour l'animation
+    setTimeout(() => {
+      wishlistAnimating.value = false
+    }, 300)
+    
+  } catch (error) {
+    console.error('Erreur wishlist:', error)
+    wishlistAnimating.value = false
+    
+    // Afficher une notification d'erreur (optionnel)
+    if (error.message.includes('connecté')) {
+      alert('Vous devez être connecté pour ajouter à votre liste de souhaits')
+    } else {
+      alert('Une erreur est survenue')
+    }
+  }
 }
 
 const handleImageLoad = () => {
@@ -81,7 +108,7 @@ const handleImageError = () => {
 <template>
   <article 
     class="product-card stagger-item glow-hover"
-    @click="handleClick"
+    @click="openOverlay"
     :class="{ 
       'loading': cartStore.isLoading,
       'just-added': justAdded,
@@ -108,15 +135,23 @@ const handleImageError = () => {
       <!-- Overlay avec boutons -->
       <transition name="slide-up">
         <div class="product-overlay" v-show="true">
-          <!-- Bouton favori avec animation -->
+          <!-- ✅ Bouton wishlist avec animation -->
           <transition name="scale-bounce" mode="out-in">
             <button 
-              :key="isFavorite"
-              class="favorite-btn"
-              @click.stop="handleFavorite"
-              :class="{ 'active': isFavorite }"
+              :key="isInWishlist"
+              class="wishlist-btn"
+              @click.stop="handleWishlist"
+              :class="{ 
+                'active': isInWishlist,
+                'loading': wishlistAnimating
+              }"
+              :disabled="wishlistAnimating"
             >
-              <i :class="isFavorite ? 'ri-heart-fill' : 'ri-heart-line'"></i>
+              <transition name="fade" mode="out-in">
+                <i v-if="wishlistAnimating" key="loading" class="ri-loader-4-line spinning"></i>
+                <i v-else-if="isInWishlist" key="filled" class="ri-heart-fill"></i>
+                <i v-else key="empty" class="ri-heart-line"></i>
+              </transition>
             </button>
           </transition>
           
@@ -159,7 +194,7 @@ const handleImageError = () => {
             }"
           >
             <transition name="fade" mode="out-in">
-              <i v-if="isAnimating" key="loading" class="ri-loader-4-line"></i>
+              <i v-if="isAnimating" key="loading" class="ri-loader-4-line spinning"></i>
               <i v-else-if="justAdded" key="success" class="ri-check-line"></i>
               <span v-else-if="isInCart" key="count" class="cart-count">{{ cartQuantity }}</span>
               <i v-else key="add" class="ri-add-line"></i>
@@ -214,7 +249,8 @@ const handleImageError = () => {
   pointer-events: none;
 }
 
-.favorite-btn {
+/* ✅ Styles wishlist (renommés depuis favorite) */
+.wishlist-btn {
   background: rgba(255, 255, 255, 0.9);
   border: none;
   border-radius: 50%;
@@ -226,19 +262,35 @@ const handleImageError = () => {
   cursor: pointer;
   font-size: 1rem;
   color: #6b7280;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   backdrop-filter: blur(4px);
   pointer-events: all;
+  position: relative;
 }
 
-.favorite-btn:hover {
+.wishlist-btn:hover:not(:disabled) {
   background: white;
   transform: scale(1.1);
 }
 
-.favorite-btn.active {
+.wishlist-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.wishlist-btn.active {
   color: #ef4444;
   background: rgba(255, 255, 255, 0.95);
+  animation: heartBeat 0.3s ease;
+}
+
+.wishlist-btn.loading {
+  pointer-events: none;
+}
+
+/* ✅ Animation pour le loader */
+.spinning {
+  animation: spin 1s linear infinite;
 }
 
 .product-badge {
@@ -345,19 +397,10 @@ const handleImageError = () => {
   transform: none;
 }
 
-.cart-quantity {
-  font-size: 0.8rem;
+.cart-count {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: white;
-}
-
-.loading-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  min-width: 16px;
 }
 
 .product-card {
@@ -377,19 +420,6 @@ const handleImageError = () => {
   pointer-events: none;
 }
 
-.favorite-btn {
-  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.favorite-btn:hover {
-  transform: scale(1.2);
-}
-
-.favorite-btn.active {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
 .add-btn {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
@@ -405,12 +435,6 @@ const handleImageError = () => {
   opacity: 0.7;
 }
 
-.cart-count {
-  font-size: 0.75rem;
-  font-weight: 600;
-  min-width: 16px;
-}
-
 .product-badge {
   animation-delay: 0.5s;
 }
@@ -418,15 +442,37 @@ const handleImageError = () => {
 /* Responsive animations */
 @media (prefers-reduced-motion: reduce) {
   .product-card,
-  .favorite-btn,
+  .wishlist-btn,
   .add-btn {
     transition: none !important;
     animation: none !important;
   }
 }
 
+/* ✅ Animations */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
 }
 </style>

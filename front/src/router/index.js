@@ -2,7 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/Login.vue';
 import RegisterView from '../views/Register.vue';
 import HomeView from '../views/Home.vue';
-
+import CartView from '../views/Cart.vue';
+import OrderView from '../views/Order.vue';
+import ProfilView from '../views/Profil.vue';
+import WishlistView from '../views/Wishlist.vue';
+import OrdersView from '../views/Orders.vue';
+import OrderConfirmation from '../views/OrderConfirmation.vue';
+import { useAuthStore } from '../stores/authStore'
 
 const routes = [
   {
@@ -21,7 +27,37 @@ const routes = [
     name: 'register',
     component: RegisterView
   },
-  // ajoute d'autres routes ici
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: CartView
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: OrderView
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: ProfilView
+  },
+  {
+    path: '/wishlist',
+    name: 'wishlist',
+    component: WishlistView
+  },
+  {
+    path: '/orders',
+    name: 'orders',
+    component: OrdersView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/order-confirmation/:id',
+    name: 'order-confirmation',
+    component: OrderConfirmation
+  }
 ]
 
 const router = createRouter({
@@ -29,17 +65,16 @@ const router = createRouter({
   routes
 })
 
-// 🔐 Guard globale
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
-
+  const authStore = useAuthStore()
+  const isAuthenticated = authStore.isAuthenticated
+  
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' }) // si la route est protégée et pas connecté → redirect login
+    next({ name: 'login' })
   } else if ((to.name === 'login' || to.name === 'register') && isAuthenticated) {
-    next({ name: 'home' }) // si connecté et essaie d'aller sur login/register → redirect home
+    next({ name: 'home' })
   } else {
-    next() // sinon continue normalement
+    next()
   }
 })
-
 export default router
