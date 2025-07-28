@@ -18,7 +18,9 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use('/api/checkout', stripeRoutes);
-app.use('/api/wishlist', wishlistRoutes)  
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/stripe', stripeRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

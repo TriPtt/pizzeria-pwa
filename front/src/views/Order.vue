@@ -104,7 +104,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore' // ← Ajoute ça
 import { useRouter } from 'vue-router'
-import { useOrdersStore } from '../stores/ordersStore'
+import { loadStripe } from '@stripe/stripe-js';
 
 const cartStore = useCartStore()
 const authStore = useAuthStore() // ← Ajoute ça
@@ -222,62 +222,82 @@ const fetchAvailableSlots = async (date) => {
 }
 
 const submitOrder = async () => {
-  if (!canSubmitOrder.value) return
+  if (submitting.value) return;
+      
+  // ✅ Validation des champs
+  if (!customerInfo.value.name.trim()) {
+    alert('Veuillez entrer votre nom');
+    return;
+  }
   
-  submitting.value = true
+  if (!customerInfo.value.phone.trim()) {
+    alert('Veuillez entrer votre numéro de téléphone');
+    return;
+  }
   
+  if (!selectedSlot.value) {
+    alert('Veuillez sélectionner un créneau de retrait');
+    return;
+  }
+
+  submitting.value = true;
+
   try {
-    console.log('🚀 Début création commande...')
-    
-    // ✅ Prépare les données au bon format
-    const orderData = {
-      items: cartItems.value, // Tes items avec id, name, price, quantity
-      customer: {
-        name: customerInfo.value.name.trim(),
-        phone: customerInfo.value.phone.trim(),
-        notes: customerInfo.value.notes.trim()
+    // 🚀 1. Créer la session Stripe
+    const stripeResponse = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/stripe/create-checkout-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
+      body: JSON.stringify({
+        products: cartItems.value.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      })
+    });
+
+    if (!stripeResponse.ok) {
+      throw new Error('Erreur lors de la création du paiement');
+    }
+
+    const { id: sessionId } = await stripeResponse.json();
+
+    // 💾 2. Sauvegarder les infos commande temporairement (localStorage)
+    const orderData = {
+      items: cartItems.value.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity
+      })),
+      customer_name: customerInfo.value.name,
+      customer_phone: customerInfo.value.phone,
       pickup_date: selectedDate.value,
       pickup_time: selectedSlot.value.time,
-      total: totalPrice.value,
-      pizza_count: totalPizzas.value
+      notes: customerInfo.value.notes
+    };
+
+    localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+
+    // 🔥 3. Rediriger vers Stripe Checkout
+    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+    const { error } = await stripe.redirectToCheckout({ sessionId });
+
+    if (error) {
+      console.error('Erreur Stripe:', error);
+      alert('Erreur lors de la redirection vers le paiement');
     }
     
-    console.log('📦 Données commande:', orderData)
-    
-    // ✅ Utilise le store orders pour créer la commande
-    const ordersStore = useOrdersStore()
-    const createdOrder = await ordersStore.createOrder(orderData)
-    
-    console.log('✅ Commande créée:', createdOrder)
-    
-    // ✅ Vide le panier
-    cartStore.clear()
-    
-    // ✅ Redirige vers confirmation avec l'ID
-    router.push({
-      name: 'order-confirmation',
-      params: { id: createdOrder.id },
-      query: {
-        orderNumber: createdOrder.order_number,
-        total: createdOrder.total_price,
-        pickupDate: selectedDate.value,
-        pickupTime: selectedSlot.value.time
-      }
-    })
-    
+    cartStore.clear();
+
   } catch (error) {
-    console.error('❌ Erreur commande:', error)
-    
-    // ✅ Affiche l'erreur spécifique du store
-    const ordersStore = useOrdersStore()
-    const errorMessage = ordersStore.error || 'Erreur lors de la commande. Veuillez réessayer.'
-    
-    alert(`❌ ${errorMessage}`)
+    console.error('Erreur commande:', error);
+    alert('Erreur lors de la création de la commande');
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
+
 
 // Watchers
 watch(selectedDate, (newDate) => {

@@ -3,18 +3,65 @@
     <div class="confirmation-content">
       <div class="success-icon">✅</div>
       <h1>Commande confirmée !</h1>
-      <div class="order-details">
-        <p><strong>Numéro:</strong> {{ $route.query.orderNumber }}</p>
-        <p><strong>Total:</strong> {{ $route.query.total }}€</p>
-        <p><strong>Retrait:</strong> {{ $route.query.pickupDate }} à {{ $route.query.pickupTime }}</p>
+      
+      <div v-if="orderData.order_Number" class="order-details">
+        <p><strong>Numéro:</strong> #{{ orderData.order_Number }}</p>
+        <p><strong>Total:</strong> {{ orderData.total_price }}€</p>
+        <p><strong>Retrait:</strong> {{ orderData.pickup_Date }} à {{ orderData.pickup_Time }}</p>
       </div>
-      <button @click="$router.push('/')" class="home-btn">
+      
+      <div v-else class="loading">
+        <p>Chargement des détails...</p>
+      </div>
+      
+      <button @click="goHome" class="home-btn">
         Retour à l'accueil
       </button>
     </div>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const orderData = ref({})
+const debugInfo = ref('')
+
+onMounted(() => {
+  console.log('🏪 OrderConfirmation mounted')
+  
+  // Vérifier localStorage
+  const storedData = localStorage.getItem('orderConfirmation')
+  console.log('📥 Données stockées:', storedData)
+  
+  if (storedData) {
+    try {
+      orderData.value = JSON.parse(storedData)
+      console.log('✅ Données parsées:', orderData.value)
+      localStorage.removeItem('orderConfirmation')
+      console.log('🧹 LocalStorage nettoyé')
+    } catch (error) {
+      console.error('💥 Erreur parsing:', error)
+      debugInfo.value = 'Erreur de parsing: ' + error.message
+    }
+  } else {
+    console.log('❌ Aucune donnée dans localStorage')
+    debugInfo.value = 'Aucune donnée trouvée dans localStorage'
+  }
+  
+  // Debug localStorage complet
+  console.log('🔍 Contenu complet localStorage:')
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    console.log(`  ${key}: ${localStorage.getItem(key)}`)
+  }
+})
+const goHome = () => {
+  router.push('/')
+}
+</script>
 
 <style scoped>
 .confirmation-page {
@@ -64,4 +111,10 @@
   cursor: pointer;
   margin-top: 20px;
 }
+
+.loading {
+  margin: 24px 0;
+  color: #666;
+}
+
 </style>

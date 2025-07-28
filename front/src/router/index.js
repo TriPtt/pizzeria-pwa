@@ -8,6 +8,8 @@ import ProfilView from '../views/Profil.vue';
 import WishlistView from '../views/Wishlist.vue';
 import OrdersView from '../views/Orders.vue';
 import OrderConfirmation from '../views/OrderConfirmation.vue';
+import PaymentSuccess from '../views/PaymentSuccess.vue'
+import PaymentCancel from '../views/PaymentCancel.vue'
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -53,10 +55,20 @@ const routes = [
     component: OrdersView,
     meta: { requiresAuth: true }
   },
+{
+  path: '/order-confirmation',
+  name: 'order-confirmation',
+  component: OrderConfirmation
+},
   {
-    path: '/order-confirmation/:id',
-    name: 'order-confirmation',
-    component: OrderConfirmation
+    path: '/payment-success',
+    name: 'payment-success',
+    component: PaymentSuccess
+  },
+  {
+    path: '/payment-cancel',
+    name: 'payment-cancel',
+    component: PaymentCancel
   }
 ]
 
