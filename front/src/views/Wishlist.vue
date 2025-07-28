@@ -52,7 +52,7 @@
       </svg>
       <h2>Votre liste de souhaits est vide</h2>
       <p>Parcourez nos produits et ajoutez vos articles préférés !</p>
-      <router-link to="/products" class="browse-btn">
+      <router-link to="/" class="browse-btn">
         Découvrir nos produits
       </router-link>
     </div>
@@ -66,7 +66,7 @@
       >
         <div class="item-image">
           <img 
-            :src="item.image_url || '/images/placeholder.jpg'" 
+            :src="item.image || '/images/placeholder.jpg'" 
             :alt="item.nom"
             @error="$event.target.src = '/images/placeholder.jpg'"
           />
@@ -91,7 +91,7 @@
             <span 
               :class="['regular-price', { 'striked': item.prix_promo }]"
             >
-              {{ item.prix }}€
+              {{ item.price }}€
             </span>
           </div>
 
