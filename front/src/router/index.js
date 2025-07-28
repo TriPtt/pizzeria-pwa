@@ -6,6 +6,8 @@ import CartView from '../views/Cart.vue';
 import OrderView from '../views/Order.vue';
 import ProfilView from '../views/Profil.vue';
 import WishlistView from '../views/Wishlist.vue';
+import OrdersView from '../views/Orders.vue';
+import OrderConfirmation from '../views/OrderConfirmation.vue';
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -44,6 +46,17 @@ const routes = [
     path: '/wishlist',
     name: 'wishlist',
     component: WishlistView
+  },
+  {
+    path: '/orders',
+    name: 'orders',
+    component: OrdersView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/order-confirmation/:id',
+    name: 'order-confirmation',
+    component: OrderConfirmation
   }
 ]
 

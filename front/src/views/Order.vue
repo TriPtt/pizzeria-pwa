@@ -102,10 +102,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useCartStore } from '../stores/cartStore'
+import { useAuthStore } from '../stores/authStore' // ← Ajoute ça
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { useOrdersStore } from '../stores/ordersStore'
 
 const cartStore = useCartStore()
+const authStore = useAuthStore() // ← Ajoute ça
 const router = useRouter()
 
 // Data
@@ -145,52 +147,133 @@ const availableDates = computed(() => {
 
 const canSubmitOrder = computed(() => {
   return selectedSlot.value && 
-         customerInfo.value.name && 
-         customerInfo.value.phone &&
-         cartItems.value.length > 0
+         cartItems.value.length > 0 &&
+         customerInfo.value.name.trim() &&
+         customerInfo.value.phone.trim()
 })
+
+// ✅ NOUVEAU - Générer les créneaux horaires
+const generateTimeSlots = (date) => {
+  const slots = []
+  const selectedDateTime = new Date(date)
+  const now = new Date()
+  
+  // Horaires: 11h30 à 14h00 et 18h00 à 21h30
+  const timeRanges = [
+    { start: 11.5, end: 14 },    // 11h30 - 14h00
+    { start: 18, end: 21.5 }     // 18h00 - 21h30
+  ]
+  
+  timeRanges.forEach(range => {
+    for (let hour = range.start; hour < range.end; hour += 0.5) {
+      const slotTime = new Date(selectedDateTime)
+      slotTime.setHours(Math.floor(hour))
+      slotTime.setMinutes((hour % 1) * 60)
+      slotTime.setSeconds(0)
+      
+      // Ne propose que les créneaux futurs (au moins 30 min à l'avance)
+      const minTime = new Date(now.getTime() + 30 * 60000)
+      
+      if (slotTime > minTime) {
+        const timeString = slotTime.toLocaleTimeString('fr-FR', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+        
+        slots.push({
+          time: timeString,
+          datetime: slotTime,
+          available: Math.floor(Math.random() * 8) + 3 // Simulation: 3-10 places
+        })
+      }
+    }
+  })
+  
+  return slots.sort((a, b) => a.datetime - b.datetime)
+}
 
 // Methods
 const fetchAvailableSlots = async (date) => {
   loadingSlots.value = true
+  selectedSlot.value = null
+  
   try {
-    const response = await axios.get(`/api/orders/available-slots?date=${date}&pizzas=${totalPizzas.value}`)
-    availableSlots.value = response.data.slots
+    // ✅ Version avec vraie API (quand tu l'auras)
+    // const response = await axios.get(`/api/orders/available-slots?date=${date}&pizzas=${totalPizzas.value}`)
+    // availableSlots.value = response.data.slots
+    
+    // ✅ Version simulation pour le moment
+    await new Promise(resolve => setTimeout(resolve, 500)) // Simule loading
+    availableSlots.value = generateTimeSlots(date)
     
     // Auto-sélectionne le premier créneau disponible
-    if (availableSlots.value.length > 0) {
-      selectedSlot.value = availableSlots.value[0]
+    const availableSlot = availableSlots.value.find(slot => slot.available >= totalPizzas.value)
+    if (availableSlot) {
+      selectedSlot.value = availableSlot
     }
+    
   } catch (error) {
     console.error('Erreur lors du chargement des créneaux:', error)
+    // Fallback sur simulation si l'API ne marche pas
+    availableSlots.value = generateTimeSlots(date)
   } finally {
     loadingSlots.value = false
   }
 }
 
 const submitOrder = async () => {
+  if (!canSubmitOrder.value) return
+  
   submitting.value = true
+  
   try {
+    console.log('🚀 Début création commande...')
+    
+    // ✅ Prépare les données au bon format
     const orderData = {
-      items: cartItems.value,
-      total: totalPrice.value,
+      items: cartItems.value, // Tes items avec id, name, price, quantity
+      customer: {
+        name: customerInfo.value.name.trim(),
+        phone: customerInfo.value.phone.trim(),
+        notes: customerInfo.value.notes.trim()
+      },
       pickup_date: selectedDate.value,
       pickup_time: selectedSlot.value.time,
-      customer: customerInfo.value,
+      total: totalPrice.value,
       pizza_count: totalPizzas.value
     }
     
-    const response = await axios.post('/api/orders', orderData)
+    console.log('📦 Données commande:', orderData)
     
-    // Vider le panier
-    cartStore.clearCart()
+    // ✅ Utilise le store orders pour créer la commande
+    const ordersStore = useOrdersStore()
+    const createdOrder = await ordersStore.createOrder(orderData)
     
-    // Rediriger vers confirmation
-    router.push(`/order-confirmation/${response.data.order_id}`)
+    console.log('✅ Commande créée:', createdOrder)
+    
+    // ✅ Vide le panier
+    cartStore.clear()
+    
+    // ✅ Redirige vers confirmation avec l'ID
+    router.push({
+      name: 'order-confirmation',
+      params: { id: createdOrder.id },
+      query: {
+        orderNumber: createdOrder.order_number,
+        total: createdOrder.total_price,
+        pickupDate: selectedDate.value,
+        pickupTime: selectedSlot.value.time
+      }
+    })
     
   } catch (error) {
-    console.error('Erreur lors de la commande:', error)
-    alert('Erreur lors de la commande')
+    console.error('❌ Erreur commande:', error)
+    
+    // ✅ Affiche l'erreur spécifique du store
+    const ordersStore = useOrdersStore()
+    const errorMessage = ordersStore.error || 'Erreur lors de la commande. Veuillez réessayer.'
+    
+    alert(`❌ ${errorMessage}`)
   } finally {
     submitting.value = false
   }
@@ -203,15 +286,27 @@ watch(selectedDate, (newDate) => {
   }
 })
 
+// ✅ NOUVEAU - Auto-complétion des infos utilisateur
+const loadUserInfo = () => {
+  if (authStore.user) {
+    customerInfo.value.name = authStore.user.name || ''
+    customerInfo.value.phone = authStore.user.phone || ''
+  }
+}
+
 // Lifecycle
 onMounted(() => {
-  // Sélectionne aujourd'hui par défaut
-  selectedDate.value = availableDates.value[0].value
-  
   // Redirect si panier vide
   if (cartItems.value.length === 0) {
     router.push('/cart')
+    return
   }
+  
+  // ✅ Auto-complète les infos utilisateur
+  loadUserInfo()
+  
+  // Sélectionne aujourd'hui par défaut
+  selectedDate.value = availableDates.value[0].value
 })
 </script>
 

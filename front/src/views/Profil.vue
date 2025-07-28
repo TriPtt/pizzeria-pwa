@@ -54,7 +54,12 @@
         </div>
 
         <div class="menu-item" @click="$router.push('/orders')">
-          <span>Mes commandes</span>
+          <div class="menu-item-content">
+            <span>Mes commandes</span>
+            <!-- ✅ Affiche le nombre de commandes -->
+            <span v-if="orderCount > 0" class="order-count">{{ orderCount }}</span>
+            <span v-else class="no-orders">Aucune commande</span>
+          </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
           </svg>
@@ -105,8 +110,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { useRouter } from 'vue-router'
+import { useOrdersStore } from '../stores/ordersStore'
 
 const authStore = useAuthStore()
+const ordersStore = useOrdersStore()
 const router = useRouter()
 
 // Pour debugger (mets à true si tu veux voir les données)
@@ -117,6 +124,8 @@ const user = computed(() => {
   console.log('User data dans profile:', authStore.user)
   return authStore.user
 })
+
+const orderCount = computed(() => ordersStore.orderCount)
 
 // Methods
 const getInitials = (name) => {
@@ -155,7 +164,10 @@ onMounted(() => {
     return
   }
   
+  ordersStore.fetchOrders()
+  
   console.log('✅ Profile mounted avec user:', authStore.user)
+  console.log('✅ Commandes chargées:', ordersStore.orders)
   
   // Debug toggle (double-tap sur le header)
   let tapCount = 0
@@ -421,6 +433,28 @@ onMounted(() => {
 .logout-btn:hover {
   background: #007bff;
   color: white;
+}
+
+.menu-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-count {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 12px;
+  align-self: flex-start;
+}
+
+.no-orders {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
