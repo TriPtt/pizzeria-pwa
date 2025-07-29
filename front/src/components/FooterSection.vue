@@ -103,23 +103,23 @@ const props = defineProps({
   },
   address: {
     type: String,
-    default: '123 Rue de la Pizza, 75001 Paris'
+    default: '39 Rue Gambetta, 17400 Saint-Jean d\'Angély'
   },
   phone: {
     type: String,
-    default: '01 23 45 67 89'
+    default: '07 44 52 57 77'
   },
   email: {
     type: String,
-    default: 'contact@lafavola.fr'
+    default: 'lafavola17@gmail.com'
   },
   city: {
     type: String,
-    default: 'Paris'
+    default: 'Saint-Jean d\'Angély'
   },
   startYear: {
     type: Number,
-    default: 2010
+    default: 2021
   },
   openingHours: {
     type: Object,
