@@ -68,10 +68,11 @@ const activeTab = computed(() => {
   if (path.startsWith('/products')) return 'menu'
   if (path.startsWith('/profile')) return 'profile'
   if (path.startsWith('/cart')) return 'cart'
+  if (path.startsWith('/reservations') || path.startsWith('/mes-reservations')) return 'reservations' // 🆕
   return 'home'
 })
 
-// Configuration des onglets
+// Configuration des onglets - 🆕 Ajout du bouton réservation
 const navItems = computed(() => [
   {
     id: 'home',
@@ -90,20 +91,29 @@ const navItems = computed(() => [
     activeIcon: 'ri-grid-fill'
   },
   {
+    id: 'reservations', // 🆕 Nouvel onglet
+    route: 'reservations',
+    path: '/reservations',
+    label: 'Réserver',
+    icon: 'ri-calendar-line',
+    activeIcon: 'ri-calendar-fill'
+  },
+  {
+    id: 'cart',
+    route: 'cart',
+    icon: 'ri-shopping-bag-line',
+    activeIcon: 'ri-shopping-bag-fill',
+    label: 'Panier',
+    path: '/cart',
+    badge: cartStore.itemCount 
+  },
+  {
     id: 'profile',
     route: 'profile',
     path: '/profile', 
     label: 'Profil',
     icon: 'ri-user-line',
     activeIcon: 'ri-user-fill'
-  },
-  {
-    id: 'cart',
-    icon: 'ri-shopping-bag-line',
-    activeIcon: 'ri-shopping-bag-fill',
-    label: 'Panier',
-    path: '/cart',
-    badge: cartStore.itemCount 
   }
 ])
 
@@ -156,6 +166,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 🆕 Navigation à 5 éléments maintenant */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -179,7 +190,7 @@ onUnmounted(() => {
   display: flex;
   max-width: 500px;
   margin: 0 auto;
-  padding: 0.5rem 1rem 0;
+  padding: 0.5rem 0.5rem 0; /* 🆕 Padding réduit pour 5 éléments */
 }
 
 .nav-item {
@@ -188,14 +199,14 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 0.25rem 0.5rem;
+  padding: 0.75rem 0.15rem 0.5rem; /* 🆕 Padding horizontal réduit */
   background: none;
   border: none;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
   border-radius: 12px;
-  margin: 0 0.25rem;
+  margin: 0 0.1rem; /* 🆕 Marge réduite */
 }
 
 .nav-item:active {
@@ -207,13 +218,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px; /* 🆕 Légèrement plus petit */
+  height: 28px;
   margin-bottom: 0.25rem;
 }
 
 .nav-icon {
-  font-size: 1.4rem;
+  font-size: 1.3rem; /* 🆕 Légèrement plus petit pour 5 éléments */
   color: #9ca3af;
   transition: all 0.2s ease;
 }
@@ -255,11 +266,12 @@ onUnmounted(() => {
 }
 
 .nav-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem; /* 🆕 Légèrement plus petit */
   font-weight: 500;
   color: #9ca3af;
   transition: color 0.2s ease;
   line-height: 1;
+  text-align: center;
 }
 
 .nav-item.active .nav-label {
@@ -270,7 +282,7 @@ onUnmounted(() => {
 .nav-indicator {
   position: absolute;
   top: 0.25rem;
-  width: 32px;
+  width: 28px; /* 🆕 Ajusté à la nouvelle taille */
   height: 3px;
   background: #4f46e5;
   border-radius: 2px;
@@ -319,14 +331,14 @@ onUnmounted(() => {
   }
 }
 
-/* Responsive */
-@media (max-width: 320px) {
+/* 🆕 Responsive optimisé pour 5 éléments */
+@media (max-width: 380px) {
   .nav-container {
-    padding: 0.5rem 0.5rem 0;
+    padding: 0.5rem 0.25rem 0;
   }
   
   .nav-item {
-    margin: 0 0.1rem;
+    margin: 0 0.05rem;
     padding: 0.5rem 0.1rem 0.25rem;
   }
   
@@ -335,7 +347,16 @@ onUnmounted(() => {
   }
   
   .nav-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
+  }
+  
+  .nav-icon-container {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .nav-indicator {
+    width: 24px;
   }
 }
 
