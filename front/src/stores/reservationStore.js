@@ -1,11 +1,46 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from './authStore'
 
 export const useReservationStore = defineStore('reservation', () => {
   // État
   const reservations = ref([])
+  const userReservations = ref([])
   const loading = ref(false)
   const error = ref(null)
+
+  const getAuthToken = () => {
+    const authStore = useAuthStore()
+    const token = authStore.token
+    console.log('🔐 Getting token from authStore:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
+    return token
+  }
+
+  // Configuration axios de base
+  const apiClient = axios.create({
+    baseURL: 'http://localhost:5000/api',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  // Intercepteur pour ajouter le token automatiquement
+  apiClient.interceptors.request.use((config) => {
+    const token = getAuthToken()
+    
+    console.log('📡 Making request to:', config.url) // Debug
+    console.log('🔑 Token available:', !!token) // Debug
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+      console.log('✅ Authorization header set') // Debug
+    } else {
+      console.log('❌ No token found!') // Debug
+    }
+    
+    return config
+  })
 
   // Getters
   const upcomingReservations = computed(() => {
@@ -51,7 +86,7 @@ export const useReservationStore = defineStore('reservation', () => {
   // Générer les créneaux disponibles pour une date
   const generateTimeSlots = (dateStr) => {
     const date = new Date(dateStr)
-    const dayOfWeek = date.getDay() // 0 = dimanche, 1 = lundi, etc.
+    const dayOfWeek = date.getDay()
     const daySchedule = openingHours[dayOfWeek]
     
     const slots = []
@@ -63,30 +98,24 @@ export const useReservationStore = defineStore('reservation', () => {
       let currentHour = startHour
       let currentMin = startMin
       
-      while (true) {
-        // Vérifier si on peut encore faire une résa de 1h30
-        const endTime = new Date(date)
-        endTime.setHours(currentHour, currentMin + 90, 0, 0)
+      while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+        // ✅ FORMAT ISO POUR LA BDD
+        const slotDate = new Date(date)
+        slotDate.setHours(currentHour, currentMin, 0, 0)
         
-        const periodEnd = new Date(date)
-        periodEnd.setHours(endHour, endMin, 0, 0)
-        
-        if (endTime > periodEnd) break
-        
-        const slotTime = new Date(date)
-        slotTime.setHours(currentHour, currentMin, 0, 0)
+        const timeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`
         
         slots.push({
-          time: `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`,
-          datetime: slotTime.toISOString(),
+          time: timeStr,
+          datetime: slotDate.toISOString(), // ✅ FORMAT ISO
           available: true
         })
         
-        // Créneaux toutes les 30 minutes
+        // Incrémenter de 30 minutes
         currentMin += 30
         if (currentMin >= 60) {
           currentMin = 0
-          currentHour++
+          currentHour += 1
         }
       }
     })
@@ -100,25 +129,29 @@ export const useReservationStore = defineStore('reservation', () => {
     clearError()
     
     try {
-      const response = await fetch(
-        `/api/reservations/slots/available?date=${date}&guests=${guests}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
-          }
-        }
-      )
+      console.log('🔍 Fetching slots for:', { date, guests }) // Debug
       
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la récupération des créneaux')
+      const response = await apiClient.get('/reservations/slots/available', {
+        params: {
+          date,
+          guests
+        }
+      })
+
+      console.log('✅ Response received:', response.data) // Debug
+
+      return response.data.slots || generateTimeSlots(date) // Fallback sur génération locale
+
+    } catch (err) {
+      console.error('❌ Error fetching slots:', err) // Debug
+      
+      // Si c'est une erreur réseau, utiliser les créneaux générés localement
+      if (err.code === 'ECONNREFUSED' || err.response?.status >= 500) {
+        console.log('🔄 Using fallback slots generation') // Debug
+        return generateTimeSlots(date)
       }
       
-      const data = await response.json()
-      return data.slots || generateTimeSlots(date) // Fallback sur génération locale
-      
-    } catch (err) {
-      setError(err.message)
+      setError(err.response?.data?.error || err.message)
       throw err
     } finally {
       setLoading(false)
@@ -130,36 +163,37 @@ export const useReservationStore = defineStore('reservation', () => {
     setLoading(true)
     clearError()
     
+    console.log('🎯 Creating reservation with data:', reservationData)
+    console.log('📝 Data details:', {
+      reservation_date: reservationData.reservation_date,
+      guests: reservationData.guests,
+      status: reservationData.status,
+      type: typeof reservationData.reservation_date,
+      isValidDate: !isNaN(new Date(reservationData.reservation_date))
+    })
+    
     try {
-      const response = await fetch('/api/reservations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(reservationData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la création de la réservation')
-      }
-
-      const data = await response.json()
-      const newReservation = data.reservation
+      const response = await apiClient.post('/reservations', reservationData)
       
-      // Ajouter la nouvelle réservation au state
+      console.log('✅ Reservation created successfully:', response.data)
+      
+      const newReservation = response.data.reservation
       reservations.value.unshift(newReservation)
       
       return newReservation
       
     } catch (err) {
-      setError(err.message)
-      throw err
+      console.error('❌ Create reservation error:', err)
+      console.error('❌ Error response data:', err.response?.data) // ✅ IMPORTANT
+      
+      const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de la création de la réservation'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     } finally {
       setLoading(false)
     }
   }
+
 
   // Récupérer toutes les réservations de l'utilisateur
   const fetchUserReservations = async () => {
@@ -167,24 +201,19 @@ export const useReservationStore = defineStore('reservation', () => {
     clearError()
     
     try {
-      const response = await fetch('/api/reservations/user/me', {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la récupération des réservations')
-      }
-
-      const data = await response.json()
-      reservations.value = data
+      console.log('🔍 Fetching user reservations...')
+      const response = await apiClient.get('/reservations/user/me')
       
-      return data
+      console.log('✅ Response data:', response.data)
+      
+      userReservations.value = response.data || []
+      
+      return response.data
       
     } catch (err) {
-      setError(err.message)
+      console.error('❌ Error:', err)
+      setError(err.response?.data?.error || err.message)
+      userReservations.value = []
       throw err
     } finally {
       setLoading(false)
@@ -197,22 +226,9 @@ export const useReservationStore = defineStore('reservation', () => {
     clearError()
     
     try {
-      const response = await fetch(`/api/reservations/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(updateData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la modification')
-      }
-
-      const data = await response.json()
-      const updatedReservation = data.reservation
+      const response = await apiClient.put(`/reservations/${id}`, updateData)
+      
+      const updatedReservation = response.data.reservation
       
       // Mettre à jour dans le state
       const index = reservations.value.findIndex(r => r.id === id)
@@ -223,7 +239,7 @@ export const useReservationStore = defineStore('reservation', () => {
       return updatedReservation
       
     } catch (err) {
-      setError(err.message)
+      setError(err.response?.data?.error || err.message)
       throw err
     } finally {
       setLoading(false)
@@ -236,17 +252,7 @@ export const useReservationStore = defineStore('reservation', () => {
     clearError()
     
     try {
-      const response = await fetch(`/api/reservations/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de l\'annulation')
-      }
+      await apiClient.delete(`/reservations/${id}`)
 
       // Mettre à jour le statut dans le state
       const reservation = reservations.value.find(r => r.id === id)
@@ -257,16 +263,11 @@ export const useReservationStore = defineStore('reservation', () => {
       return true
       
     } catch (err) {
-      setError(err.message)
+      setError(err.response?.data?.error || err.message)
       throw err
     } finally {
       setLoading(false)
     }
-  }
-
-  // Utilitaire pour récupérer le token
-  const getAuthToken = () => {
-    return localStorage.getItem('token') || sessionStorage.getItem('token')
   }
 
   // Formater une date
@@ -300,6 +301,7 @@ export const useReservationStore = defineStore('reservation', () => {
   return {
     // State
     reservations,
+    userReservations,
     loading,
     error,
     
@@ -314,6 +316,7 @@ export const useReservationStore = defineStore('reservation', () => {
     fetchUserReservations,
     updateReservation,
     cancelReservation,
+    setError,
     
     // Utilitaires
     formatDate,

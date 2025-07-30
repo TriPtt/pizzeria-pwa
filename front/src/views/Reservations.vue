@@ -16,102 +16,113 @@
       </button>
     </div>
 
+    <!-- Loading state -->
+    <div v-if="loading" class="loading-state">
+      <p>Chargement...</p>
+    </div>
+
     <!-- Contenu principal -->
-    <div class="reservations-content">
+    <div v-else class="reservations-content">
       
       <!-- Étape 1: Sélection date et nombre de personnes -->
-      <div v-if="step === 1" class="step-container">
+      <div v-if="step === 1" class="step-card">
         <div class="step-header">
           <h2>📅 Choisir la date et le nombre de personnes</h2>
           <p>Sélectionnez votre date et le nombre de convives</p>
         </div>
 
-        <div class="form-group">
-          <label>Date de réservation</label>
-          <input 
-            type="date" 
-            v-model="selectedDate"
-            :min="minDate"
-            :max="maxDate"
-            class="date-input"
-            @change="resetTimeSlot"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Nombre de personnes</label>
-          <div class="guests-selector">
-            <button 
-              @click="decreaseGuests" 
-              :disabled="selectedGuests <= 1"
-              class="guests-btn"
-            >-</button>
-            <span class="guests-count">{{ selectedGuests }}</span>
-            <button 
-              @click="increaseGuests" 
-              :disabled="selectedGuests >= 8"
-              class="guests-btn"
-            >+</button>
+        <div class="form-section">
+          <div class="form-group">
+            <label>Date de réservation</label>
+            <input 
+              type="date" 
+              v-model="selectedDate"
+              :min="minDate"
+              :max="maxDate"
+              class="date-input"
+              @change="resetTimeSlot"
+            />
           </div>
-          <small class="help-text">
-            Maximum 8 personnes. Pour plus, contactez-nous au 📞 01.23.45.67.89
-          </small>
+
+          <div class="form-group">
+            <label>Nombre de personnes</label>
+            <div class="guests-selector">
+              <button 
+                @click="decreaseGuests" 
+                :disabled="selectedGuests <= 1"
+                class="guests-btn"
+              >-</button>
+              <span class="guests-count">{{ selectedGuests }}</span>
+              <button 
+                @click="increaseGuests" 
+                :disabled="selectedGuests >= 8"
+                class="guests-btn"
+              >+</button>
+            </div>
+            <small class="help-text">
+              Maximum 8 personnes. Pour plus, contactez-nous au 📞 01.23.45.67.89
+            </small>
+          </div>
         </div>
 
         <button 
           @click="searchAvailableSlots" 
-          :disabled="!selectedDate || loading"
-          class="continue-btn"
+          :disabled="!selectedDate"
+          class="primary-btn"
         >
-          <span v-if="loading">Recherche...</span>
-          <span v-else>Voir les créneaux disponibles</span>
+          Voir les créneaux disponibles
         </button>
       </div>
 
       <!-- Étape 2: Sélection du créneau -->
-      <div v-if="step === 2" class="step-container">
+      <div v-if="step === 2" class="step-card">
         <div class="step-header">
           <h2>🕐 Choisir un créneau</h2>
-          <p>{{ formatDateLong(selectedDate) }} - {{ selectedGuests }} personne{{ selectedGuests > 1 ? 's' : '' }}</p>
+          <div class="selection-summary">
+            <p>{{ formatDateLong(selectedDate) }}</p>
+            <p>{{ selectedGuests }} personne{{ selectedGuests > 1 ? 's' : '' }}</p>
+          </div>
           <button @click="step = 1" class="modify-btn">Modifier</button>
         </div>
 
-        <div v-if="availableSlots.length === 0" class="no-slots">
-          <div class="no-slots-icon">😔</div>
+        <div v-if="availableSlots.length === 0" class="empty-state">
+          <div class="empty-icon">😔</div>
           <h3>Aucun créneau disponible</h3>
           <p>Essayez une autre date ou un nombre de personnes différent.</p>
-          <button @click="step = 1" class="back-to-date-btn">
+          <button @click="step = 1" class="secondary-btn">
             Choisir une autre date
           </button>
         </div>
 
-        <div v-else class="slots-grid">
-          <button
-            v-for="slot in availableSlots"
-            :key="slot.datetime"
-            @click="selectTimeSlot(slot)"
-            :class="['slot-btn', { 'selected': selectedSlot?.datetime === slot.datetime }]"
+        <div v-else>
+          <div class="slots-grid">
+            <button
+              v-for="slot in availableSlots"
+              :key="slot.datetime"
+              @click="selectTimeSlot(slot)"
+              :class="['slot-btn', { 'selected': selectedSlot?.datetime === slot.datetime }]"
+            >
+              {{ slot.time }}
+            </button>
+          </div>
+
+          <button 
+            v-if="selectedSlot"
+            @click="step = 3" 
+            class="primary-btn"
           >
-            {{ slot.time }}
+            Continuer
           </button>
         </div>
-
-        <button 
-          v-if="selectedSlot"
-          @click="step = 3" 
-          class="continue-btn"
-        >
-          Continuer
-        </button>
       </div>
 
       <!-- Étape 3: Confirmation -->
-      <div v-if="step === 3" class="step-container">
+      <div v-if="step === 3" class="step-card">
         <div class="step-header">
           <h2>✅ Confirmer la réservation</h2>
         </div>
 
-        <div class="reservation-summary">
+        <div class="summary-section">
           <div class="summary-item">
             <span class="label">📅 Date :</span>
             <span class="value">{{ formatDateLong(selectedDate) }}</span>
@@ -130,7 +141,7 @@
           </div>
         </div>
 
-        <div class="info-box">
+        <div class="info-section">
           <h4>📋 Informations importantes</h4>
           <ul>
             <li>La table sera libérée automatiquement après 1h30</li>
@@ -140,31 +151,31 @@
         </div>
 
         <div class="action-buttons">
-          <button @click="step = 2" class="back-btn-step">
+          <button @click="step = 2" class="secondary-btn">
             Retour
           </button>
           <button 
-            @click="confirmReservation" 
-            :disabled="loading"
+            @click="confirmReservation"
             class="confirm-btn"
           >
-            <span v-if="loading">Confirmation...</span>
-            <span v-else>Confirmer la réservation</span>
+            Confirmer la réservation
           </button>
         </div>
       </div>
 
       <!-- Étape 4: Succès -->
-      <div v-if="step === 4" class="step-container success-container">
+      <div v-if="step === 4" class="step-card success-card">
         <div class="success-animation">🎉</div>
         <h2>Réservation confirmée !</h2>
-        <p>Votre table est réservée pour le {{ formatDateLong(selectedDate) }} à {{ selectedSlot?.time }}</p>
+        <p class="success-text">
+          Votre table est réservée pour le {{ formatDateLong(selectedDate) }} à {{ selectedSlot?.time }}
+        </p>
         
         <div class="success-actions">
-          <button @click="goToMyReservations" class="view-reservations-btn">
+          <button @click="goToMyReservations" class="primary-btn">
             Voir mes réservations
           </button>
-          <button @click="resetForm" class="new-reservation-btn">
+          <button @click="resetForm" class="secondary-btn">
             Nouvelle réservation
           </button>
         </div>
@@ -178,10 +189,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservationStore } from '../stores/reservationStore'
+import { useAuthStore } from '../stores/authStore'
 
 // Stores
 const router = useRouter()
 const reservationStore = useReservationStore()
+const authStore = useAuthStore()
 
 // États réactifs
 const step = ref(1)
@@ -199,7 +212,7 @@ const minDate = computed(() => {
 
 const maxDate = computed(() => {
   const maxDate = new Date(today)
-  maxDate.setDate(maxDate.getDate() + 30) // 30 jours à l'avance
+  maxDate.setDate(maxDate.getDate() + 30)
   return maxDate.toISOString().split('T')[0]
 })
 
@@ -247,19 +260,49 @@ const selectTimeSlot = (slot) => {
 }
 
 const confirmReservation = async () => {
+  if (!selectedSlot.value) {
+    alert('Veuillez sélectionner un créneau')
+    return
+  }
+
+  if (!authStore.isAuthenticated) {
+    alert('Vous devez être connecté pour faire une réservation')
+    router.push('/auth/login')
+    return
+  }
+
+  const guestCount = parseInt(selectedGuests.value)
+  if (guestCount < 1 || guestCount > 8) {
+    alert('Le nombre d\'invités doit être entre 1 et 8')
+    return
+  }
+
   loading.value = true
+  
   try {
-    await reservationStore.createReservation({
-      reservation_date: selectedSlot.value.datetime,
-      number_of_guests: selectedGuests.value
-    })
+    console.log('🎯 Selected slot details:', selectedSlot.value)
+    console.log('👥 Selected guests:', selectedGuests.value)
+    
+    // ✅ ASSURE-TOI QUE LES DONNÉES SONT CORRECTES
+    const reservationData = {
+      reservation_date: selectedSlot.value.datetime, // ou selectedSlot.value.date + 'T' + selectedSlot.value.time
+      number_of_guests: parseInt(selectedGuests.value), // Force en nombre
+    }
+    
+    console.log('📤 Sending reservation data:', reservationData)
+    
+    await reservationStore.createReservation(reservationData)
+    
     step.value = 4
+    
   } catch (error) {
+    console.error('❌ Erreur lors de la confirmation:', error)
     alert(error.message || 'Erreur lors de la réservation')
   } finally {
     loading.value = false
   }
 }
+
 
 const resetForm = () => {
   step.value = 1
@@ -282,80 +325,132 @@ const goToMyReservations = () => {
 <style scoped>
 .reservations-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8f9fa;
 }
 
+/* Header - même style que Profil */
 .reservations-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .reservations-header h1 {
-  margin: 0;
-  color: #333;
-  font-size: 1.5rem;
+  font-size: 20px;
   font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .back-btn, .my-reservations-btn {
   background: none;
   border: none;
   padding: 8px;
-  border-radius: 8px;
-  color: #666;
   cursor: pointer;
-  transition: all 0.2s;
+  color: #666;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .back-btn:hover, .my-reservations-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #333;
+  background: #f0f0f0;
 }
 
+/* Loading state */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+/* Content */
 .reservations-content {
   padding: 20px;
-  max-width: 500px;
+  max-width: 400px;
   margin: 0 auto;
+  animation: fadeInUp 0.4s ease-out;
 }
 
-.step-container {
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Step card - même style que user-card */
+.step-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
+/* Step header */
 .step-header {
   text-align: center;
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .step-header h2 {
-  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
   color: #333;
-  font-size: 1.3rem;
+  margin: 0 0 8px 0;
 }
 
 .step-header p {
-  margin: 0;
   color: #666;
-  font-size: 0.9rem;
+  font-size: 14px;
+  margin: 0;
+}
+
+.selection-summary {
+  margin: 12px 0;
+}
+
+.selection-summary p {
+  margin: 4px 0;
+  font-weight: 500;
+  color: #333;
+  font-size: 15px;
 }
 
 .modify-btn {
-  background: #f0f8ff;
-  color: #667eea;
-  border: 1px solid #667eea;
+  background: #f8f9fa;
+  color: #007bff;
+  border: 1px solid #007bff;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 12px;
   cursor: pointer;
   margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.modify-btn:hover {
+  background: #007bff;
+  color: white;
+}
+
+/* Form section */
+.form-section {
+  margin-bottom: 24px;
 }
 
 .form-group {
@@ -367,22 +462,27 @@ const goToMyReservations = () => {
   margin-bottom: 8px;
   color: #333;
   font-weight: 500;
+  font-size: 14px;
 }
 
 .date-input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 16px;
   transition: border-color 0.2s;
+  background: #f8f9fa;
 }
 
 .date-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #007bff;
+  background: white;
 }
 
+/* Guests selector */
 .guests-selector {
   display: flex;
   align-items: center;
@@ -392,20 +492,23 @@ const goToMyReservations = () => {
 }
 
 .guests-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid #667eea;
+  border: 2px solid #007bff;
   background: white;
-  color: #667eea;
-  font-size: 1.2rem;
+  color: #007bff;
+  font-size: 18px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .guests-btn:hover:not(:disabled) {
-  background: #667eea;
+  background: #007bff;
   color: white;
 }
 
@@ -415,8 +518,8 @@ const goToMyReservations = () => {
 }
 
 .guests-count {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 600;
   color: #333;
   min-width: 30px;
   text-align: center;
@@ -425,58 +528,79 @@ const goToMyReservations = () => {
 .help-text {
   display: block;
   text-align: center;
-  color: #666;
-  font-size: 0.8rem;
+  color: #6c757d;
+  font-size: 12px;
   margin-top: 8px;
+  line-height: 1.4;
 }
 
-.continue-btn {
+/* Buttons */
+.primary-btn {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  background: #007bff;
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 
-.continue-btn:disabled {
+.primary-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
-.no-slots {
+.secondary-btn {
+  background: white;
+  color: #007bff;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  background: #007bff;
+  color: white;
+}
+
+/* Empty state */
+.empty-state {
   text-align: center;
   padding: 40px 20px;
 }
 
-.no-slots-icon {
+.empty-icon {
   font-size: 3rem;
   margin-bottom: 16px;
 }
 
-.no-slots h3 {
+.empty-state h3 {
   margin: 0 0 8px 0;
   color: #333;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.no-slots p {
-  margin: 0 0 20px 0;
+.empty-state p {
+  margin: 0 0 24px 0;
   color: #666;
+  font-size: 14px;
 }
 
-.back-to-date-btn {
-  background: #f8f9fa;
-  color: #667eea;
-  border: 1px solid #667eea;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
+/* Slots grid */
 .slots-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -486,29 +610,32 @@ const goToMyReservations = () => {
 
 .slot-btn {
   padding: 12px 8px;
-  border: 2px solid #e1e5e9;
-  background: white;
+  border: 2px solid #e9ecef;
+  background: #f8f9fa;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 500;
+  color: #495057;
 }
 
 .slot-btn:hover {
-  border-color: #667eea;
-  background: #f0f8ff;
+  border-color: #007bff;
+  background: #e7f3ff;
+  color: #007bff;
 }
 
 .slot-btn.selected {
-  background: #667eea;
+  background: #007bff;
   color: white;
-  border-color: #667eea;
+  border-color: #007bff;
 }
 
-.reservation-summary {
+/* Summary section */
+.summary-section {
   background: #f8f9fa;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
 }
@@ -516,6 +643,7 @@ const goToMyReservations = () => {
 .summary-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 12px;
 }
 
@@ -524,16 +652,19 @@ const goToMyReservations = () => {
 }
 
 .summary-item .label {
-  color: #666;
+  color: #6c757d;
   font-weight: 500;
+  font-size: 14px;
 }
 
 .summary-item .value {
   color: #333;
   font-weight: 600;
+  font-size: 14px;
 }
 
-.info-box {
+/* Info section */
+.info-section {
   background: #fff3cd;
   border: 1px solid #ffeaa7;
   border-radius: 8px;
@@ -541,53 +672,56 @@ const goToMyReservations = () => {
   margin-bottom: 24px;
 }
 
-.info-box h4 {
+.info-section h4 {
   margin: 0 0 12px 0;
   color: #856404;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.info-box ul {
+.info-section ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 16px;
   color: #856404;
 }
 
-.info-box li {
+.info-section li {
   margin-bottom: 4px;
-  font-size: 0.9rem;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
+/* Action buttons */
 .action-buttons {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 12px;
 }
 
-.back-btn-step {
-  padding: 12px;
-  background: #f8f9fa;
-  color: #666;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .confirm-btn {
-  padding: 12px;
-  background: linear-gradient(45deg, #00b894, #00cec9);
+  background: #28a745;
   color: white;
   border: none;
   border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
-.success-container {
+.confirm-btn:hover {
+  background: #218838;
+}
+
+/* Success card */
+.success-card {
   text-align: center;
 }
 
 .success-animation {
   font-size: 4rem;
+  margin-bottom: 16px;
   animation: bounce 1s infinite;
 }
 
@@ -603,39 +737,34 @@ const goToMyReservations = () => {
   }
 }
 
+.success-card h2 {
+  color: #28a745;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.success-text {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
 .success-actions {
   display: grid;
   gap: 12px;
-  margin-top: 24px;
-}
-
-.view-reservations-btn, .new-reservation-btn {
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.view-reservations-btn {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-}
-
-.new-reservation-btn {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .reservations-content {
     padding: 16px 12px;
+    max-width: none;
   }
   
-  .step-container {
-    padding: 20px;
+  .step-card {
+    padding: 20px 16px;
   }
   
   .slots-grid {

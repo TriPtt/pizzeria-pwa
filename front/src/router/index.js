@@ -11,6 +11,7 @@ import OrderConfirmation from '../views/OrderConfirmation.vue';
 import PaymentSuccess from '../views/PaymentSuccess.vue'
 import PaymentCancel from '../views/PaymentCancel.vue'
 import Reservations from '../views/Reservations.vue';
+import MyReservations from '../views/MyReservations.vue';
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -76,6 +77,11 @@ const routes = [
     name: 'Reservations',
     component: Reservations,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/mes-reservations',
+    name: 'MesReservations',
+    component: MyReservations,
   }
 ]
 
