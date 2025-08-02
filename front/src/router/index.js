@@ -10,6 +10,8 @@ import OrdersView from '../views/Orders.vue';
 import OrderConfirmation from '../views/OrderConfirmation.vue';
 import PaymentSuccess from '../views/PaymentSuccess.vue'
 import PaymentCancel from '../views/PaymentCancel.vue'
+import Reservations from '../views/Reservations.vue';
+import MyReservations from '../views/MyReservations.vue';
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -55,11 +57,11 @@ const routes = [
     component: OrdersView,
     meta: { requiresAuth: true }
   },
-{
-  path: '/order-confirmation',
-  name: 'order-confirmation',
-  component: OrderConfirmation
-},
+  {
+    path: '/order-confirmation',
+    name: 'order-confirmation',
+    component: OrderConfirmation
+  },
   {
     path: '/payment-success',
     name: 'payment-success',
@@ -69,6 +71,17 @@ const routes = [
     path: '/payment-cancel',
     name: 'payment-cancel',
     component: PaymentCancel
+  },
+  {
+    path: '/reservations',
+    name: 'Reservations',
+    component: Reservations,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/mes-reservations',
+    name: 'MesReservations',
+    component: MyReservations,
   }
 ]
 
