@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL_BACK || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL_BACK
 
 export const useProductsStore = defineStore('products', {
   state: () => ({

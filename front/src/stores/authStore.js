@@ -6,6 +6,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(null)
   const isLoading = ref(false)
+  
+  const api = import.meta.env.VITE_API_URL_BACK;
 
   // Getters
   const isAuthenticated = computed(() => {
@@ -20,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email, password) => {
     isLoading.value = true
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${api}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData) => {
     isLoading.value = true
     try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${api}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user.value.id}`, {
+      const response = await fetch(`${api}/api/users/${user.value.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

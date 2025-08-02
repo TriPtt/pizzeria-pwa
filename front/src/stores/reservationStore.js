@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from './authStore'
 
+const api = import.meta.env.VITE_API_URL_BACK;
+
 export const useReservationStore = defineStore('reservation', () => {
   // État
   const reservations = ref([])
@@ -19,7 +21,7 @@ export const useReservationStore = defineStore('reservation', () => {
 
   // Configuration axios de base
   const apiClient = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: `${api}/api`,
     headers: {
       'Content-Type': 'application/json'
     }

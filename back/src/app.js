@@ -10,7 +10,14 @@ const stripeRoutes = require('./routes/stripeRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 
 
-app.use(cors());
+const allowedOrigins = [
+  'pizzeria-pwa-rho.vercel.app',
+  'http://localhost:5173'
+];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
@@ -24,5 +31,5 @@ app.use('/api/stripe', stripeRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`Serveur démarré sur le port ${PORT}`);
 });
