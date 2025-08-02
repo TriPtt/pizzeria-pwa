@@ -5,12 +5,13 @@ exports.createOrder = async (req, res) => {
   const client = await pool.connect();
   try {
     const { 
-      items,           // [{ product_id: 1, quantity: 2 }, ...]
-      customer_name,   // Nom du client
-      customer_phone,  // Téléphone
-      pickup_date,     // Date de retrait (optionnel)
-      pickup_time,     // Heure de retrait (optionnel)
-      notes           // Remarques (optionnel)
+      items,
+      customer_name,
+      customer_phone,
+      pickup_date,
+      pickup_time,
+      notes,
+      total_amount
     } = req.body;
 
     console.log('📦 Création commande:', req.body);
@@ -25,7 +26,7 @@ exports.createOrder = async (req, res) => {
 
     await client.query("BEGIN");
 
-    // Récupération des prix des produits
+    // Récupération des produits pour validation et noms
     const productIds = items.map(item => item.product_id);
     const productQuery = await client.query(
       "SELECT id, name, price FROM products WHERE id = ANY($1)",
@@ -33,51 +34,51 @@ exports.createOrder = async (req, res) => {
     );
 
     const products = productQuery.rows;
-    const priceMap = {};
     const nameMap = {};
     
     products.forEach(p => {
-      priceMap[p.id] = parseFloat(p.price);
       nameMap[p.id] = p.name;
     });
 
-    // Calcul du prix total
-    let total = 0;
-    const orderItems = [];
-    
+    // Vérifier que tous les produits existent
     for (const item of items) {
-      if (!priceMap[item.product_id]) {
+      if (!nameMap[item.product_id]) {
         throw new Error(`Produit ID ${item.product_id} non trouvé`);
       }
-      
-      const itemTotal = priceMap[item.product_id] * item.quantity;
-      total += itemTotal;
-      
-      orderItems.push({
-        product_id: item.product_id,
-        name: nameMap[item.product_id],
-        quantity: item.quantity,
-        price: priceMap[item.product_id],
-        total: itemTotal
-      });
     }
+
+    // Utiliser le total calculé côté front
+    const finalTotal = parseFloat(total_amount) || 0;
 
     // Insertion dans orders
     const orderRes = await client.query(
       `INSERT INTO orders (user_id, total_price, status) 
        VALUES ($1, $2, $3) 
        RETURNING id, created_at`,
-      [req.user.id, total.toFixed(2), 'pending']
+      [req.user.id, finalTotal, 'pending']
     );
 
     const orderId = orderRes.rows[0].id;
     const createdAt = orderRes.rows[0].created_at;
 
-    // Insertion dans order_items
+    // Insertion dans order_items avec TOUS les champs requis
     const insertPromises = items.map(item => {
+      const basePrice = parseFloat(item.base_price) || 0;
+      const unitPrice = parseFloat(item.unit_price) || 0;
+      const quantity = parseInt(item.quantity) || 1;
+      
+      console.log('🔍 Insertion item:', {
+        orderId,
+        productId: item.product_id,
+        quantity,
+        basePrice,
+        unitPrice
+      });
+
       return client.query(
-        `INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3)`,
-        [orderId, item.product_id, item.quantity]
+        `INSERT INTO order_items (order_id, product_id, quantity, base_price, unit_price, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [orderId, item.product_id, quantity, basePrice, unitPrice, new Date()]
       );
     });
 
@@ -85,14 +86,31 @@ exports.createOrder = async (req, res) => {
 
     await client.query("COMMIT");
 
-    // ✅ Réponse avec toutes les infos
+    // Préparation des items pour la réponse
+    const responseItems = items.map(item => {
+      const basePrice = parseFloat(item.base_price) || 0;
+      const unitPrice = parseFloat(item.unit_price) || 0;
+      const quantity = parseInt(item.quantity) || 1;
+      
+      return {
+        product_id: item.product_id,
+        name: nameMap[item.product_id],
+        quantity: quantity,
+        base_price: basePrice,
+        unit_price: unitPrice,
+        total: unitPrice * quantity, // 🎯 Calcul correct du total par item
+        customizations: item.customizations || {}
+      };
+    });
+
+    // ✅ Réponse finale
     res.status(201).json({ 
       success: true,
       message: "Commande créée avec succès",
       order: {
         id: orderId,
         order_number: `CMD-${String(orderId).padStart(3, '0')}`,
-        total_price: parseFloat(total.toFixed(2)),
+        total_price: finalTotal, // 🎯 Plus de référence à 'total'
         status: 'pending',
         created_at: createdAt,
         customer_name,
@@ -100,7 +118,7 @@ exports.createOrder = async (req, res) => {
         pickup_date,
         pickup_time,
         notes,
-        items: orderItems
+        items: responseItems
       }
     });
 
@@ -117,7 +135,6 @@ exports.createOrder = async (req, res) => {
     client.release();
   }
 };
-
 
 // Récupérer toutes les commandes (admin uniquement)
 exports.getAllOrders = async (req, res) => {

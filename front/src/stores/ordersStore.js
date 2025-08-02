@@ -80,6 +80,7 @@ export const useOrdersStore = defineStore('orders', () => {
     return colors[status] || '#6b7280'
   }
 
+  // 🆕 MÉTHODE CORRIGÉE
   const createOrder = async (orderData) => {
     isLoading.value = true
     error.value = null
@@ -91,22 +92,26 @@ export const useOrdersStore = defineStore('orders', () => {
         throw new Error('Non connecté')
       }
 
-      console.log('📦 Envoi commande:', orderData)
+      console.log('📦 Données reçues:', orderData)
       
-      // ✅ Format pour ton API
+      // 🎯 FORMAT CORRIGÉ avec tous les prix nécessaires
       const payload = {
         items: orderData.items.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
+          product_id: item.product_id, // ✅ Utilise product_id au lieu de id
+          quantity: item.quantity,
+          base_price: item.base_price || item.price, // 🆕 Prix de base du produit
+          unit_price: item.unit_price, // 🆕 Prix unitaire final (avec suppléments)
+          customizations: item.customizations // 🆕 Customizations pour la BDD
         })),
-        customer_name: orderData.customer.name,
-        customer_phone: orderData.customer.phone,
+        customer_name: orderData.customer_name,
+        customer_phone: orderData.customer_phone,
         pickup_date: orderData.pickup_date,
         pickup_time: orderData.pickup_time,
-        notes: orderData.customer.notes
+        notes: orderData.notes,
+        total_amount: orderData.total_amount // 🆕 Montant total
       }
       
-      console.log('🚀 Payload API:', payload)
+      console.log('🚀 Payload API corrigé:', payload)
       
       const response = await axios.post('http://localhost:5000/api/orders', payload, {
         headers: { 

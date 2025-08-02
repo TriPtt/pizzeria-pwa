@@ -9,7 +9,7 @@
     />
     
     <BottomNavigation 
-      :cart-count="cartCount"
+      :cart-count="overlayStore.cartCount"
       :hide-on-scroll="true"
       @tab-change="handleTabChange"
       v-if="showBottomNav"
