@@ -27,7 +27,7 @@
         <!-- Item -->
         <div 
           v-for="item in cartStore.items" 
-          :key="item.id" 
+          :key="item.itemKey" 
           class="cart-item"
         >
           <!-- Image -->
@@ -38,28 +38,53 @@
           <!-- Info -->
           <div class="item-info">
             <h3>{{ item.name }}</h3>
-            <p class="item-subtitle">{{ item.description || 'Base tomate' }}</p>
+            <p class="item-subtitle">{{ getItemDescription(item) }}</p>
+            
+            <!-- 🆕 Customizations -->
+            <div v-if="item.customizations" class="customizations">
+              <!-- Suppléments ajoutés -->
+              <div v-if="item.customizations.supplements?.length" class="supplements">
+                <span class="custom-label">Suppléments:</span>
+                <span class="custom-items">
+                  {{ item.customizations.supplements.map(s => s.name).join(', ') }}
+                </span>
+              </div>
+              <!-- Ingrédients retirés -->
+              <div v-if="item.customizations.removedIngredients?.length" class="removed">
+                <span class="custom-label">Retiré:</span>
+                <span class="custom-items removed-text">
+                  {{ item.customizations.removedIngredients.map(r => r.name).join(', ') }}
+                </span>
+              </div>
+            </div>
             
             <!-- Quantity selector -->
             <div class="quantity-selector">
               <span>Qty:</span>
               <select 
                 :value="item.quantity" 
-                @change="updateQuantity(item.id, $event.target.value)"
+                @change="updateQuantity(item.itemKey, $event.target.value)"
                 class="qty-select"
               >
                 <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
               </select>
             </div>
 
-            <div class="item-price">{{ formatPrice(item.price) }}</div>
+            <!-- 🆕 Prix avec détails -->
+            <div class="item-pricing">
+              <div v-if="item.finalPrice !== item.price" class="price-breakdown">
+                <span class="base-price">{{ formatPrice(item.price) }}</span>
+                <span class="supplements-price">+{{ formatPrice(item.finalPrice - item.price) }}</span>
+              </div>
+              <div class="final-price">{{ formatPrice(item.finalPrice) }}</div>
+            </div>
 
             <!-- Actions -->
             <div class="item-actions">
               <button @click="addToWishlist(item)" class="wishlist-btn">
                 Ajouter aux souhaits
               </button>
-              <button @click="removeItem(item.id)" class="remove-btn">
+              <button @click="removeItem(item.itemKey)" class="remove-btn">
                 Retirer
               </button>
             </div>
@@ -133,12 +158,28 @@ const formatPrice = (price) => {
   return `${numPrice.toFixed(2).replace('.', ',')}€`
 }
 
-const updateQuantity = (productId, quantity) => {
-  cartStore.updateQuantity(productId, parseInt(quantity))
+// 🆕 Description dynamique avec customizations
+const getItemDescription = (item) => {
+  if (item.customizations) {
+    const supplementsCount = item.customizations.supplements?.length || 0
+    const removedCount = item.customizations.removedIngredients?.length || 0
+    
+    if (supplementsCount > 0 || removedCount > 0) {
+      const parts = []
+      if (supplementsCount > 0) parts.push(`+${supplementsCount} supplément${supplementsCount > 1 ? 's' : ''}`)
+      if (removedCount > 0) parts.push(`-${removedCount} ingrédient${removedCount > 1 ? 's' : ''}`)
+      return parts.join(', ')
+    }
+  }
+  return item.description || 'Base tomate'
 }
 
-const removeItem = (productId) => {
-  cartStore.removeItem(productId)
+const updateQuantity = (itemKey, quantity) => {
+  cartStore.updateQuantity(itemKey, parseInt(quantity))
+}
+
+const removeItem = (itemKey) => {
+  cartStore.removeItem(itemKey)
 }
 
 const addToWishlist = (item) => {
@@ -432,5 +473,62 @@ onMounted(() => {
   .promo-input {
     flex-direction: column;
   }
+}
+
+.customizations {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.supplements, .removed {
+  margin-bottom: 4px;
+}
+
+.supplements:last-child, .removed:last-child {
+  margin-bottom: 0;
+}
+
+.custom-label {
+  font-weight: 600;
+  color: #666;
+  margin-right: 6px;
+}
+
+.custom-items {
+  color: #333;
+}
+
+.removed-text {
+  color: #dc3545;
+  text-decoration: line-through;
+}
+
+.item-pricing {
+  margin-bottom: 12px;
+}
+
+.price-breakdown {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.base-price {
+  margin-right: 8px;
+}
+
+.supplements-price {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.final-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 </style>

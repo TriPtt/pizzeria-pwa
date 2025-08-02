@@ -27,6 +27,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/authStore' // 🎯 Import du store
 
 // Props
 defineProps({
@@ -43,17 +44,32 @@ defineProps({
 // Events
 defineEmits(['toggleMenu', 'openCart', 'openSearch'])
 
-// Router
+// Router et Store
 const router = useRouter()
+const authStore = useAuthStore() // 🎯 Utilisation du store
 
-const handleLogout = () => {
+const handleLogout = async () => {
   if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    router.push('/login')
+    try {
+      // 🎯 Utiliser la méthode logout du store
+      await authStore.logout()
+      
+      // 🎯 Redirection vers login
+      router.push('/login')
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+      
+      // 🎯 Fallback: forcer la déconnexion même en cas d'erreur
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      authStore.user = null
+      authStore.token = null
+      router.push('/login')
+    }
   }
 }
 </script>
+
 
 <style scoped>
 .header {

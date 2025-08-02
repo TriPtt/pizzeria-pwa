@@ -12,7 +12,11 @@ export const useCartStore = defineStore('cart', () => {
   })
 
   const totalPrice = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0)
+    return items.value.reduce((total, item) => {
+      // Utilise finalPrice si disponible, sinon price de base
+      const price = item.finalPrice || item.price
+      return total + (price * item.quantity)
+    }, 0)
   })
 
   const isEmpty = computed(() => items.value.length === 0)
@@ -23,6 +27,17 @@ export const useCartStore = defineStore('cart', () => {
     return item ? item.quantity : 0
   }
 
+  // 🆕 Génère un ID unique pour les items avec customizations
+  const generateItemKey = (product, customizations = null) => {
+    if (!customizations || (!customizations.supplements?.length && !customizations.removedIngredients?.length)) {
+      return `${product.id}`
+    }
+    
+    const supplements = customizations.supplements?.sort().join(',') || ''
+    const removed = customizations.removedIngredients?.sort().join(',') || ''
+    return `${product.id}_${supplements}_${removed}`
+  }
+
   // Actions
   const addItem = async (product) => {
     isLoading.value = true
@@ -31,18 +46,27 @@ export const useCartStore = defineStore('cart', () => {
       // Simule délai réseau
       await new Promise(resolve => setTimeout(resolve, 300))
       
-      const existingItem = items.value.find(item => item.id === product.id)
+      // Génère la clé unique basée sur le produit + customizations
+      const itemKey = generateItemKey(product, product.customizations)
+      const existingItem = items.value.find(item => item.itemKey === itemKey)
       
       if (existingItem) {
         existingItem.quantity++
       } else {
-        items.value.push({
+        // Nouvel item avec toutes les données nécessaires
+        const newItem = {
           id: product.id,
+          itemKey, // 🆕 Clé unique pour différencier les variantes
           name: product.name,
-          price: product.price,
+          price: product.price, // Prix de base
+          finalPrice: product.finalPrice || product.price, // 🆕 Prix avec suppléments
           image: product.image,
-          quantity: 1
-        })
+          description: product.description,
+          quantity: 1,
+          customizations: product.customizations || null // 🆕 Suppléments et retraits
+        }
+        
+        items.value.push(newItem)
       }
       
       saveToStorage()
@@ -53,19 +77,21 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  const removeItem = (productId) => {
-    const index = items.value.findIndex(item => item.id === productId)
+  // 🆕 Supprime par itemKey au lieu de juste l'ID
+  const removeItem = (itemKey) => {
+    const index = items.value.findIndex(item => item.itemKey === itemKey)
     if (index > -1) {
       items.value.splice(index, 1)
       saveToStorage()
     }
   }
 
-  const updateQuantity = (productId, quantity) => {
-    const item = items.value.find(item => item.id === productId)
+  // 🆕 Update par itemKey
+  const updateQuantity = (itemKey, quantity) => {
+    const item = items.value.find(item => item.itemKey === itemKey)
     if (item) {
       if (quantity <= 0) {
-        removeItem(productId)
+        removeItem(itemKey)
       } else {
         item.quantity = quantity
         saveToStorage()
@@ -87,7 +113,12 @@ export const useCartStore = defineStore('cart', () => {
     const saved = localStorage.getItem('cart-items')
     if (saved) {
       try {
-        items.value = JSON.parse(saved)
+        const loadedItems = JSON.parse(saved)
+        // 🆕 S'assure que les anciens items ont un itemKey
+        items.value = loadedItems.map(item => ({
+          ...item,
+          itemKey: item.itemKey || `${item.id}`
+        }))
       } catch (error) {
         console.error('Erreur chargement panier:', error)
         items.value = []
@@ -116,6 +147,7 @@ export const useCartStore = defineStore('cart', () => {
     removeItem,
     updateQuantity,
     clear,
-    loadFromStorage
+    loadFromStorage,
+    generateItemKey // 🆕 Export pour autres composants
   }
 })

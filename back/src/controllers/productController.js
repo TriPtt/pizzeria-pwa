@@ -100,11 +100,112 @@ const getProductsByType = async (req, res) => {
   }
 };
 
+// Récupérer les ingrédients et suppléments d'un produit
+const getProductIngredients = async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // Récupérer les ingrédients de base (inclus dans le produit)
+    const baseIngredients = await pool.query(`
+      SELECT 
+        i.id,
+        i.name,
+        i.type,
+        i.price,
+        pi.removable
+      FROM product_ingredients pi
+      JOIN ingredients i ON pi.ingredient_id = i.id
+      WHERE pi.product_id = $1 AND i.available = true
+      ORDER BY i.name
+    `, [productId]);
+
+    // Récupérer les suppléments disponibles pour ce produit
+    const supplements = await pool.query(`
+      SELECT 
+        i.id,
+        i.name,
+        i.type,
+        i.price
+      FROM product_supplements ps
+      JOIN ingredients i ON ps.ingredient_id = i.id
+      WHERE ps.product_id = $1 AND i.available = true
+      ORDER BY i.price, i.name
+    `, [productId]);
+
+    res.json({
+      baseIngredients: baseIngredients.rows,
+      supplements: supplements.rows,
+      removableIngredients: baseIngredients.rows.filter(ing => ing.removable)
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur récupération ingrédients:', error);
+    res.status(500).json({ error: "Erreur lors de la récupération des ingrédients" });
+  }
+};
+
+// Récupérer un produit avec ses ingrédients (optionnel, pour optimiser)
+const getProductWithIngredients = async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // Récupérer le produit
+    const product = await pool.query(
+      'SELECT * FROM products WHERE id = $1',
+      [productId]
+    );
+
+    if (product.rows.length === 0) {
+      return res.status(404).json({ error: "Produit non trouvé" });
+    }
+
+    // Récupérer les ingrédients si c'est une pizza
+    let ingredientsData = { baseIngredients: [], supplements: [], removableIngredients: [] };
+    
+    if (product.rows[0].type === 'pizza') {
+      const baseIngredients = await pool.query(`
+        SELECT 
+          i.id, i.name, i.type, i.price, pi.removable
+        FROM product_ingredients pi
+        JOIN ingredients i ON pi.ingredient_id = i.id
+        WHERE pi.product_id = $1 AND i.available = true
+        ORDER BY i.name
+      `, [productId]);
+
+      const supplements = await pool.query(`
+        SELECT 
+          i.id, i.name, i.type, i.price
+        FROM product_supplements ps
+        JOIN ingredients i ON ps.ingredient_id = i.id
+        WHERE ps.product_id = $1 AND i.available = true
+        ORDER BY i.price, i.name
+      `, [productId]);
+
+      ingredientsData = {
+        baseIngredients: baseIngredients.rows,
+        supplements: supplements.rows,
+        removableIngredients: baseIngredients.rows.filter(ing => ing.removable)
+      };
+    }
+
+    res.json({
+      product: product.rows[0],
+      ...ingredientsData
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur récupération produit:', error);
+    res.status(500).json({ error: "Erreur lors de la récupération du produit" });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
-  getProductsByType
+  getProductsByType,
+  getProductIngredients,
+  getProductWithIngredients
 };

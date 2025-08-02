@@ -12,23 +12,45 @@
 
     <!-- Le reste du contenu dans un container scrollable -->
     <div class="order-content">
-      <!-- Récapitulatif panier -->
+      <!-- 🆕 Récapitulatif panier CORRIGÉ -->
       <div class="cart-summary">
         <h3>Votre commande</h3>
         <div class="cart-items">
-          <div v-for="item in cartItems" :key="item.id" class="cart-item">
+          <div v-for="item in cartItems" :key="item.itemKey" class="cart-item">
             <img :src="item.image" :alt="item.name" />
             <div class="item-info">
               <h4>{{ item.name }}</h4>
-              <p>{{ item.quantity }}x {{ item.price }}€</p>
+              
+              <!-- 🆕 Affichage customizations -->
+              <div v-if="item.customizations" class="item-customizations">
+                <div v-if="item.customizations.supplements?.length" class="supplements-summary">
+                  <span class="custom-icon">+</span>
+                  {{ item.customizations.supplements.map(s => s.name).join(', ') }}
+                </div>
+                <div v-if="item.customizations.removedIngredients?.length" class="removed-summary">
+                  <span class="custom-icon">−</span>
+                  {{ item.customizations.removedIngredients.map(r => r.name).join(', ') }}
+                </div>
+              </div>
+              
+              <!-- 🆕 Prix détaillé -->
+              <div class="item-pricing">
+                <div v-if="item.finalPrice !== item.price" class="price-detail">
+                  <span class="base-price">{{ formatPrice(item.price) }}</span>
+                  <span class="supplements-addition">+{{ formatPrice(item.finalPrice - item.price) }}</span>
+                </div>
+                <p class="quantity-price">{{ item.quantity }}x {{ formatPrice(item.finalPrice) }}</p>
+              </div>
             </div>
+            
+            <!-- 🆕 Total correct -->
             <div class="item-total">
-              {{ (item.price * item.quantity).toFixed(2) }}€
+              {{ formatPrice(item.finalPrice * item.quantity) }}
             </div>
           </div>
         </div>
         <div class="total">
-          <strong>Total: {{ totalPrice.toFixed(2) }}€</strong>
+          <strong>Total: {{ formatPrice(totalPrice) }}</strong>
         </div>
       </div>
 
@@ -51,6 +73,7 @@
         <!-- Créneaux horaires -->
         <div class="time-slots">
           <div v-if="loadingSlots" class="loading">
+            <div class="spinner"></div>
             Chargement des créneaux...
           </div>
           <div v-else class="slots-grid">
@@ -75,9 +98,23 @@
       <div class="customer-info">
         <h3>Vos informations</h3>
         <form @submit.prevent class="info-form">
-          <input v-model="customerInfo.name" placeholder="Nom et prénom" required />
-          <input v-model="customerInfo.phone" placeholder="Téléphone" required />
-          <textarea v-model="customerInfo.notes" placeholder="Remarques (optionnel)"></textarea>
+          <input 
+            v-model="customerInfo.name" 
+            placeholder="Nom et prénom" 
+            required 
+            type="text"
+          />
+          <input 
+            v-model="customerInfo.phone" 
+            placeholder="Téléphone" 
+            required 
+            type="tel"
+          />
+          <textarea 
+            v-model="customerInfo.notes" 
+            placeholder="Remarques (optionnel)"
+            rows="3"
+          ></textarea>
         </form>
       </div>
     </div>
@@ -86,29 +123,35 @@
     <div class="order-footer">
       <div class="footer-total">
         <span>Total à payer</span>
-        <span class="total-price">{{ totalPrice.toFixed(2) }}€</span>
+        <span class="total-price">{{ formatPrice(totalPrice) }}</span>
       </div>
       <button 
         @click="submitOrder"
         :disabled="!canSubmitOrder || submitting"
         class="submit-btn"
       >
-        <span v-if="submitting">Commande en cours...</span>
+        <div v-if="submitting" class="submitting-content">
+          <div class="spinner small"></div>
+          <span>Commande en cours...</span>
+        </div>
         <span v-else>Confirmer la commande</span>
       </button>
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useCartStore } from '../stores/cartStore'
-import { useAuthStore } from '../stores/authStore' // ← Ajoute ça
+import { useAuthStore } from '../stores/authStore'
 import { useRouter } from 'vue-router'
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js'
+import { useOrdersStore } from '../stores/ordersStore' 
 
 const cartStore = useCartStore()
-const authStore = useAuthStore() // ← Ajoute ça
+const authStore = useAuthStore()
 const router = useRouter()
+const ordersStore = useOrdersStore()
 
 // Data
 const selectedDate = ref('')
@@ -122,6 +165,11 @@ const customerInfo = ref({
   phone: '',
   notes: ''
 })
+
+const formatPrice = (price) => {
+  const numPrice = typeof price === 'number' ? price : parseFloat(price) || 0
+  return `${numPrice.toFixed(2).replace('.', ',')}€`
+}
 
 // Computed
 const cartItems = computed(() => cartStore.items)
@@ -152,7 +200,7 @@ const canSubmitOrder = computed(() => {
          customerInfo.value.phone.trim()
 })
 
-// ✅ NOUVEAU - Générer les créneaux horaires
+// Générer les créneaux horaires
 const generateTimeSlots = (date) => {
   const slots = []
   const selectedDateTime = new Date(date)
@@ -160,8 +208,8 @@ const generateTimeSlots = (date) => {
   
   // Horaires: 11h30 à 14h00 et 18h00 à 21h30
   const timeRanges = [
-    { start: 11.5, end: 14 },    // 11h30 - 14h00
-    { start: 18, end: 21.5 }     // 18h00 - 21h30
+    { start: 11.5, end: 14 },
+    { start: 18, end: 21.5 }
   ]
   
   timeRanges.forEach(range => {
@@ -171,7 +219,6 @@ const generateTimeSlots = (date) => {
       slotTime.setMinutes((hour % 1) * 60)
       slotTime.setSeconds(0)
       
-      // Ne propose que les créneaux futurs (au moins 30 min à l'avance)
       const minTime = new Date(now.getTime() + 30 * 60000)
       
       if (slotTime > minTime) {
@@ -183,7 +230,7 @@ const generateTimeSlots = (date) => {
         slots.push({
           time: timeString,
           datetime: slotTime,
-          available: Math.floor(Math.random() * 8) + 3 // Simulation: 3-10 places
+          available: Math.floor(Math.random() * 8) + 3
         })
       }
     }
@@ -198,15 +245,9 @@ const fetchAvailableSlots = async (date) => {
   selectedSlot.value = null
   
   try {
-    // ✅ Version avec vraie API (quand tu l'auras)
-    // const response = await axios.get(`/api/orders/available-slots?date=${date}&pizzas=${totalPizzas.value}`)
-    // availableSlots.value = response.data.slots
-    
-    // ✅ Version simulation pour le moment
-    await new Promise(resolve => setTimeout(resolve, 500)) // Simule loading
+    await new Promise(resolve => setTimeout(resolve, 500))
     availableSlots.value = generateTimeSlots(date)
     
-    // Auto-sélectionne le premier créneau disponible
     const availableSlot = availableSlots.value.find(slot => slot.available >= totalPizzas.value)
     if (availableSlot) {
       selectedSlot.value = availableSlot
@@ -214,7 +255,6 @@ const fetchAvailableSlots = async (date) => {
     
   } catch (error) {
     console.error('Erreur lors du chargement des créneaux:', error)
-    // Fallback sur simulation si l'API ne marche pas
     availableSlots.value = generateTimeSlots(date)
   } finally {
     loadingSlots.value = false
@@ -222,82 +262,115 @@ const fetchAvailableSlots = async (date) => {
 }
 
 const submitOrder = async () => {
-  if (submitting.value) return;
+  if (submitting.value) return
       
-  // ✅ Validation des champs
+  // Validation des champs
   if (!customerInfo.value.name.trim()) {
-    alert('Veuillez entrer votre nom');
-    return;
+    alert('Veuillez entrer votre nom')
+    return
   }
   
   if (!customerInfo.value.phone.trim()) {
-    alert('Veuillez entrer votre numéro de téléphone');
-    return;
+    alert('Veuillez entrer votre numéro de téléphone')
+    return
   }
   
   if (!selectedSlot.value) {
-    alert('Veuillez sélectionner un créneau de retrait');
-    return;
+    alert('Veuillez sélectionner un créneau de retrait')
+    return
   }
 
-  submitting.value = true;
+  submitting.value = true
 
   try {
-    // 🚀 1. Créer la session Stripe
+    // 🎯 1. Créer la commande via ordersStore AVEC TOUS LES PRIX
+    const orderData = {
+      items: cartItems.value.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity,
+        base_price: item.price, // 🆕 Prix de base (sans suppléments)
+        unit_price: item.finalPrice, // 🆕 Prix final (avec suppléments)
+        customizations: item.customizations
+      })),
+      customer_name: customerInfo.value.name,
+      customer_phone: customerInfo.value.phone,
+      pickup_date: selectedDate.value,
+      pickup_time: selectedSlot.value.time,
+      notes: customerInfo.value.notes,
+      total_amount: totalPrice.value
+    }
+
+    console.log('🚀 Création commande avec données:', orderData)
+
+    // Créer la commande en base
+    const createdOrder = await ordersStore.createOrder(orderData)
+    
+    console.log('✅ Commande créée:', createdOrder)
+
+    // 🎯 2. Créer la session Stripe avec les BONS prix
+    const stripeProducts = cartItems.value.map(item => ({
+      name: item.name,
+      price: item.finalPrice, // ✅ Prix final avec suppléments
+      quantity: item.quantity,
+      // 🆕 Détail des customizations pour Stripe
+      description: item.customizations ? 
+        [
+          ...(item.customizations.supplements?.map(s => `+ ${s.name}`) || []),
+          ...(item.customizations.removedIngredients?.map(r => `- ${r.name}`) || [])
+        ].join(', ') : null
+    }))
+
+    console.log('💳 Produits pour Stripe:', stripeProducts)
+
     const stripeResponse = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/stripe/create-checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        products: cartItems.value.map(item => ({
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity
-        }))
+        products: stripeProducts,
+        orderId: createdOrder.id, // 🆕 Référence à la commande
+        metadata: {
+          order_id: createdOrder.id,
+          customer_name: customerInfo.value.name,
+          pickup_date: selectedDate.value,
+          pickup_time: selectedSlot.value.time
+        }
       })
-    });
+    })
 
     if (!stripeResponse.ok) {
-      throw new Error('Erreur lors de la création du paiement');
+      const errorData = await stripeResponse.json()
+      throw new Error(`Erreur Stripe: ${errorData.message || 'Erreur paiement'}`)
     }
 
-    const { id: sessionId } = await stripeResponse.json();
+    const { id: sessionId } = await stripeResponse.json()
 
-    // 💾 2. Sauvegarder les infos commande temporairement (localStorage)
-    const orderData = {
-      items: cartItems.value.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity
-      })),
-      customer_name: customerInfo.value.name,
-      customer_phone: customerInfo.value.phone,
-      pickup_date: selectedDate.value,
-      pickup_time: selectedSlot.value.time,
-      notes: customerInfo.value.notes
-    };
+    // 🎯 3. Vider le panier et rediriger
+    cartStore.clear()
 
-    localStorage.setItem('pendingOrder', JSON.stringify(orderData));
-
-    // 🔥 3. Rediriger vers Stripe Checkout
-    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-    const { error } = await stripe.redirectToCheckout({ sessionId });
+    // 4. Redirection Stripe
+    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+    const { error } = await stripe.redirectToCheckout({ sessionId })
 
     if (error) {
-      console.error('Erreur Stripe:', error);
-      alert('Erreur lors de la redirection vers le paiement');
+      console.error('❌ Erreur redirection Stripe:', error)
+      alert('Erreur lors de la redirection vers le paiement')
     }
-    
-    cartStore.clear();
 
   } catch (error) {
-    console.error('Erreur commande:', error);
-    alert('Erreur lors de la création de la commande');
+    console.error('❌ Erreur complète commande:', error)
+    
+    // Affichage d'erreur plus détaillé
+    if (ordersStore.error) {
+      alert(`Erreur: ${ordersStore.error}`)
+    } else {
+      alert(`Erreur lors de la création de la commande: ${error.message}`)
+    }
   } finally {
-    submitting.value = false;
+    submitting.value = false
   }
 }
-
 
 // Watchers
 watch(selectedDate, (newDate) => {
@@ -306,7 +379,7 @@ watch(selectedDate, (newDate) => {
   }
 })
 
-// ✅ NOUVEAU - Auto-complétion des infos utilisateur
+// Auto-complétion des infos utilisateur
 const loadUserInfo = () => {
   if (authStore.user) {
     customerInfo.value.name = authStore.user.name || ''
@@ -322,13 +395,11 @@ onMounted(() => {
     return
   }
   
-  // ✅ Auto-complète les infos utilisateur
   loadUserInfo()
-  
-  // Sélectionne aujourd'hui par défaut
   selectedDate.value = availableDates.value[0].value
 })
 </script>
+
 
 <style scoped>
 .order-page {
@@ -604,6 +675,99 @@ onMounted(() => {
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.item-customizations {
+  margin: 4px 0 8px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.supplements-summary, .removed-summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.supplements-summary {
+  color: #28a745;
+}
+
+.removed-summary {
+  color: #dc3545;
+  text-decoration: line-through;
+}
+
+.custom-icon {
+  font-weight: bold;
+  font-size: 10px;
+  width: 12px;
+  text-align: center;
+}
+
+/* 🆕 Prix détaillé */
+.item-pricing {
+  margin-top: 6px;
+}
+
+.price-detail {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.base-price {
+  margin-right: 4px;
+}
+
+.supplements-addition {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.quantity-price {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 🆕 Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.spinner.small {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.submitting-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
 }
 
 /* Responsive */

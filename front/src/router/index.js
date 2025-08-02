@@ -12,6 +12,7 @@ import PaymentSuccess from '../views/PaymentSuccess.vue'
 import PaymentCancel from '../views/PaymentCancel.vue'
 import Reservations from '../views/Reservations.vue';
 import MyReservations from '../views/MyReservations.vue';
+import Menu from '../views/Menu.vue';
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -33,7 +34,7 @@ const routes = [
   },
   {
     path: '/cart',
-    name: 'Cart',
+    name: 'cart',
     component: CartView
   },
   {
@@ -74,7 +75,7 @@ const routes = [
   },
   {
     path: '/reservations',
-    name: 'Reservations',
+    name: 'reservations',
     component: Reservations,
     meta: { requiresAuth: true }
   },
@@ -82,6 +83,11 @@ const routes = [
     path: '/mes-reservations',
     name: 'MesReservations',
     component: MyReservations,
+  },
+  {
+    path: '/products',
+    name: 'menu',
+    component: Menu
   }
 ]
 

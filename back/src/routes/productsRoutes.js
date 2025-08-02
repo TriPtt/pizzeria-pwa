@@ -11,6 +11,8 @@ router.get('/:id', productController.getProductById);
 router.get('/type/:type', productController.getProductsByType);
 router.put('/:id', authMiddleware, productController.updateProduct);
 router.delete('/:id', authMiddleware, productController.deleteProduct);
+router.get('/:id/full', productController.getProductWithIngredients);
+router.get('/:id/ingredients', productController.getProductIngredients);
 
 
 module.exports = router;
