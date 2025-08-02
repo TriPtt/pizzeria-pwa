@@ -190,14 +190,16 @@ const scrollToSection = (type) => {
   }
 }
 
+const API = import.meta.env.VITE_API_URL_BACK
+
 // 🌐 API
 const fetchProducts = async () => {
   try {
     console.log('🚀 Chargement des produits...')
     loading.value = true
     error.value = null
-    
-    const res = await axios.get('http://localhost:5000/api/products')
+
+    const res = await axios.get(`${API}/api/products`)
     products.value = res.data
     
     console.log(`✅ ${products.value.length} produits chargés`)

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+const api = import.meta.env.VITE_API_URL_BACK;
 
 export const useIngredientsStore = defineStore('ingredients', {
   state: () => ({
@@ -31,7 +32,7 @@ export const useIngredientsStore = defineStore('ingredients', {
       this.error = null
       
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/${productId}/ingredients`)
+        const response = await axios.get(`${api}/api/products/${productId}/ingredients`)
 
         // Stocker en cache
         this.productIngredients[productId] = response.data

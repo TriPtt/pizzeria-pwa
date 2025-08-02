@@ -73,9 +73,11 @@ const form = ref({
   password: ''
 })
 
+const api = import.meta.env.VITE_API_URL_BACK 
+
 const handleRegister = async () => {
   try {
-    const res = await axios.post('http://localhost:5000/api/auth/register', form.value)
+    const res = await axios.post(`${api}/api/auth/register`, form.value)
     console.log(res.data)
     router.push('/login')
   } catch (err) {

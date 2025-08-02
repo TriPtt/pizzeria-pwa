@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+const api = import.meta.env.VITE_API_URL_BACK;
 
 export const useOrdersStore = defineStore('orders', () => {
   // State
@@ -29,7 +30,7 @@ export const useOrdersStore = defineStore('orders', () => {
         throw new Error('Token d\'authentification manquant')
       }
 
-      const response = await axios.get('http://localhost:5000/api/orders/user/my-orders', {
+      const response = await axios.get(`${api}/api/orders/user/my-orders`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -112,9 +113,9 @@ export const useOrdersStore = defineStore('orders', () => {
       }
       
       console.log('🚀 Payload API corrigé:', payload)
-      
-      const response = await axios.post('http://localhost:5000/api/orders', payload, {
-        headers: { 
+
+      const response = await axios.post(`${api}/api/orders`, payload, {
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
