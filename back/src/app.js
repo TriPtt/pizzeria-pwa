@@ -10,14 +10,7 @@ const stripeRoutes = require('./routes/stripeRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 
 
-const allowedOrigins = [
-  'pizzeria-pwa-rho.vercel.app',
-  'http://localhost:5173'
-];
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
