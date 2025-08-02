@@ -14,7 +14,7 @@ ALTER SEQUENCE ingredients_id_seq RESTART WITH 1;
 -- 🍕 PIZZAS (images variées)
 INSERT INTO products (name, description, price, type, image, vegetarian) VALUES
 ('Margherita', 'Sauce tomate, mozzarella, basilic frais', 12.50, 'pizza', 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&h=400&fit=crop', true),
-('Regina', 'Sauce tomate, mozzarella, jambon, champignons', 14.00, 'pizza', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop', false),
+('Regina', 'Sauce tomate, mozzarella, jambon, champignons', 14.00, 'pizza', 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=800&h=400&fit=crop', false),
 ('4 Fromages', 'Mozzarella, gorgonzola, parmesan, chèvre', 15.50, 'pizza', 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=800&h=400&fit=crop', true),
 ('Pepperoni', 'Sauce tomate, mozzarella, pepperoni piquant', 13.50, 'pizza', 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=800&h=400&fit=crop', false),
 ('Végétarienne', 'Sauce tomate, mozzarella, poivrons, courgettes, aubergines', 13.00, 'pizza', 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=800&h=400&fit=crop', true),

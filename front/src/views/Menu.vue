@@ -298,7 +298,7 @@ watch(() => route.query.category, (newCategory) => {
 .menu-page {
   min-height: 100vh;
   background: #f8fafc;
-  padding-bottom: 80px; /* Space for bottom actions */
+  padding-bottom: 140px; /* Space for bottom actions */
 }
 
 .back-btn {
@@ -450,7 +450,7 @@ watch(() => route.query.category, (newCategory) => {
 /* Bottom Actions */
 .bottom-actions {
   position: fixed;
-  bottom: 0;
+  bottom: 70px; 
   left: 0;
   right: 0;
   background: white;
