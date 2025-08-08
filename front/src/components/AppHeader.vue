@@ -1,9 +1,6 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <button class="menu-btn" @click="$emit('toggleMenu')">
-        <i class="ri-menu-line"></i>
-      </button>
       <h1 class="header-title">{{ title }}</h1>
     </div>
     <div class="header-actions">

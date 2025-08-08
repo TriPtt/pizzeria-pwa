@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { createCheckoutSession } from '../controllers/stripeController.js';
+
 const router = express.Router();
-const stripeController = require('../controllers/stripeController');
 
-router.post('/create-checkout-session', stripeController.createCheckoutSession);
+router.post('/create-checkout-session', createCheckoutSession);
 
-module.exports = router;
+export default router;

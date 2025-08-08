@@ -1,8 +1,9 @@
-const Stripe = require('stripe');
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const api = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+import Stripe from 'stripe';
 
-exports.createCheckoutSession = async (req, res) => {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const api = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+export const createCheckoutSession = async (req, res) => {
   console.log("BODY REÇU :", req.body);
   const { products } = req.body;
   
