@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const api = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 
 exports.createCheckoutSession = async (req, res) => {
   console.log("BODY REÇU :", req.body);
@@ -25,8 +26,8 @@ exports.createCheckoutSession = async (req, res) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: 'http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:5173/payment-cancel',
+      success_url: `${api}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${api}/payment-cancel`,
     });
 
     res.json({ id: session.id });
