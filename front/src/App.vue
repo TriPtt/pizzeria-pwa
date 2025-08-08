@@ -51,7 +51,7 @@ watch(showBottomNav, (hasBottomNav) => {
 }, { immediate: true })
 
 const handleTabChange = (tab) => {
-  console.log('🔄 Changement onglet:', tab.label)
+  // console.log('🔄 Changement onglet:', tab.label)
 }
 </script>
 

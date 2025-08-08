@@ -12,11 +12,11 @@
         <button 
           class="app-promo-btn" 
           @click="handleButtonClick"
-          :disabled="loading"
+          :disabled="loading || isInstalled"
         >
           <span v-if="loading" class="loading-spinner"></span>
-          {{ buttonText }}
-          <i v-if="!loading" :class="buttonIcon"></i>
+          {{ dynamicButtonText }}
+          <i v-if="!loading && !isInstalled" :class="buttonIcon"></i>
         </button>
       </div>
       
@@ -34,7 +34,9 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { usePWA } from '../composables/usePWA'
 
+const { isSupported, isInstallable, isInstalled, installPWA } = usePWA()
 // Props
 const props = defineProps({
   title: {
@@ -99,19 +101,29 @@ const iconStyle = computed(() => ({
   background: themes[props.theme].iconBg
 }))
 
+const dynamicButtonText = computed(() => {
+  if (isInstalled.value) return '✅ App installée'
+  if (isInstallable.value) return 'Installer l\'app'
+  if (isSupported.value) return 'App disponible'
+  return 'Non supporté'
+})
+
 // Méthodes
 const handleButtonClick = async () => {
-  if (loading.value) return
+  if (loading.value || isInstalled.value) return
   
   loading.value = true
   
   try {
-    // Simulation d'installation PWA
-    if ('serviceWorker' in navigator) {
-      console.log('🔄 Installation de l\'app...')
-      // Ici tu peux ajouter la logique PWA
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log('✅ App installée !')
+    if (isInstallable.value) {
+      // Installation PWA
+      const success = await installPWA()
+      if (success) {
+        console.log('✅ PWA installée avec succès!')
+      }
+    } else {
+      // Fallback: ajouter aux favoris ou autre action
+      console.log('📌 Ajout aux favoris du navigateur')
     }
     
     emit('buttonClick')

@@ -18,12 +18,10 @@
     <!-- Contenu -->
     <div v-else class="profile-content">
       <!-- Section utilisateur principale -->
-      <div class="user-card" @click="$router.push('/profile/personal-info')">
+      <div class="user-card">
         <div class="user-row">
           <div class="user-avatar">
-            <!-- ✅ Si avatar depuis l'API -->
-            <img v-if="user?.avatar" :src="`http://localhost:3001${user.avatar}`" :alt="user?.name || 'User'">
-            <div v-else class="avatar-placeholder">
+            <div class="avatar-placeholder">
               {{ getInitials(user?.name || user?.email || 'User') }}
             </div>
           </div>
@@ -36,11 +34,6 @@
             <p v-else class="placeholder-text">Téléphone non renseigné</p>
           </div>
           
-          <div class="chevron">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </div>
         </div>
       </div>
 

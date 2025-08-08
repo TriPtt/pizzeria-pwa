@@ -89,7 +89,7 @@ const favorites = ref([])
 
 // Modifier la fonction addToCart
 const addToCart = (product) => {
-  console.log('🛒 Ajouter au panier:', product.name)
+  // console.log('🛒 Ajouter au panier:', product.name)
   cartItems.value.push({ 
     ...product, 
     quantity: 1, 
@@ -150,23 +150,23 @@ const handleFeaturedClick = () => console.log('🍕 Featured clicked!')
 
 
 const handleCategoryClick = (category) => {
-  console.log('📂 Category clicked:', category.name)
+  // console.log('📂 Category clicked:', category.name)
   activeCategory.value = activeCategory.value === category.type ? null : category.type
   scrollToSection(category.type)
 }
 
 const openProduct = (product) => {
-  console.log('🍕 Ouvrir produit:', product.name)
+  // console.log('🍕 Ouvrir produit:', product.name)
   router.push(`/product/${product.id}`)
 }
 
 const toggleFavorite = (product) => {
-  console.log('❤️ Toggle favorite:', product.name)
+  // console.log('❤️ Toggle favorite:', product.name)
   favoritesStore.toggleFavorite(product)
 }
 
 const handleSeeAll = (type) => {
-  console.log('👀 See all:', type)
+  // console.log('👀 See all:', type)
   router.push(`/products/${type}`)
 }
 
@@ -195,16 +195,16 @@ const API = import.meta.env.VITE_API_URL_BACK
 // 🌐 API
 const fetchProducts = async () => {
   try {
-    console.log('🚀 Chargement des produits...')
+    // console.log('🚀 Chargement des produits...')
     loading.value = true
     error.value = null
 
     const res = await axios.get(`${API}/api/products`)
     products.value = res.data
     
-    console.log(`✅ ${products.value.length} produits chargés`)
+    // console.log(`✅ ${products.value.length} produits chargés`)
   } catch (err) {
-    console.error('❌ Erreur de chargement:', err)
+    // console.error('❌ Erreur de chargement:', err)
     error.value = err.response?.data?.message || 'Erreur de chargement'
   } finally {
     loading.value = false
@@ -231,5 +231,9 @@ onMounted(() => {
   line-height: 1.5;
   box-sizing: border-box;
   overscroll-behavior: none;
+}
+
+.home :deep(.products-section) {
+  scroll-margin-top: 80px; /* Ajuste selon la hauteur réelle de ton header */
 }
 </style>
