@@ -47,6 +47,9 @@
 <script setup>
 import { computed } from 'vue'
 import ProductCard from './ProductCard.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Props
 const props = defineProps({
@@ -105,9 +108,22 @@ const handleToggleFavorite = (product) => {
   emit('toggleFavorite', product)
 }
 
-const handleSeeAll = () => {
-  emit('seeAll', props.type)
+
+const handleSeeAll = (categoryKey) => {
+  if (props.type === 'pizza') {
+    categoryKey = 'pizza'
+  } else if (props.type === 'boisson') {
+    categoryKey = 'boisson'
+  } else if (props.type === 'dessert') {
+    categoryKey = 'dessert'
+  }
+  // Mettre à jour l'URL
+  router.replace({ 
+    path: '/products', 
+    query: { category: categoryKey !== 'all' ? categoryKey : undefined }
+  })
 }
+
 </script>
 
 <style scoped>
