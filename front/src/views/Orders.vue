@@ -40,7 +40,6 @@
           v-for="order in ordersStore.orders" 
           :key="order.id" 
           class="order-card"
-          @click="$router.push(`/orders/${order.id}`)"
         >
           <!-- Header avec numéro et statut -->
           <div class="order-header">

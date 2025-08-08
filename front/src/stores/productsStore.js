@@ -61,7 +61,6 @@ export const useProductsStore = defineStore('products', {
   },
 
   actions: {
-    // 🔥 Récupérer tous les produits avec debug amélioré
     async fetchProducts() {
       this.loading = true
       this.error = null
@@ -77,10 +76,10 @@ export const useProductsStore = defineStore('products', {
           }
         })
         
-        console.log('📡 Response status:', response.status)
-        console.log('📡 Response headers:', response.headers)
-        console.log('📡 Response data type:', typeof response.data)
-        console.log('✅ Produits récupérés:', response.data)
+        // console.log('📡 Response status:', response.status)
+        // console.log('📡 Response headers:', response.headers)
+        // console.log('📡 Response data type:', typeof response.data)
+        // console.log('✅ Produits récupérés:', response.data)
         
         // 🎯 Vérification que c'est bien un array
         if (!Array.isArray(response.data)) {

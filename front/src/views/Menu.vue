@@ -8,14 +8,12 @@
       @open-cart="handleCartOpen" 
       @open-search="handleSearchOpen"
     >
-      <!-- Bouton retour custom dans le slot left -->
       <template #left>
         <button class="back-btn" @click="$router.go(-1)">
           <i class="ri-arrow-left-line"></i>
         </button>
       </template>
 
-      <!-- Actions custom dans le slot right -->
       <template #right>
         <button class="header-action-btn" @click="toggleFavorites">
           <i class="ri-heart-line" :class="{ 'active': showFavorites }"></i>
@@ -41,14 +39,9 @@
       </div>
     </div>
 
-    <!-- Compteur de produits -->
-    <div class="products-count">
-      {{ filteredProducts.length }} Produit{{ filteredProducts.length !== 1 ? 's' : '' }}
-    </div>
-
     <!-- Contenu principal -->
     <div class="menu-content">
-      <!-- États de chargement -->
+      <!-- Tes états de chargement existants -->
       <div v-if="loading" class="loading-state">
         <div class="loading-spinner"></div>
         <p>Chargement des produits...</p>
@@ -81,17 +74,6 @@
       </div>
     </div>
 
-    <!-- Bottom Actions comme dans ton design -->
-    <div class="bottom-actions">
-      <button class="action-btn sort-btn" @click="openSortMenu">
-        <i class="ri-sort-desc"></i>
-        SORT
-      </button>
-      <button class="action-btn filter-btn" @click="openFilterMenu">
-        <i class="ri-filter-line"></i>
-        FILTER
-      </button>
-    </div>
 
     <!-- Modals -->
     <SortModal 
@@ -205,7 +187,7 @@ const setCategory = (categoryKey) => {
   selectedCategory.value = categoryKey
   // Mettre à jour l'URL
   router.replace({ 
-    path: '/menu', 
+    path: '/products', 
     query: { category: categoryKey !== 'all' ? categoryKey : undefined }
   })
 }
@@ -316,6 +298,7 @@ watch(() => route.query.category, (newCategory) => {
 .back-btn:hover {
   background: rgba(0, 0, 0, 0.1);
 }
+
 
 .header-action-btn {
   background: none;

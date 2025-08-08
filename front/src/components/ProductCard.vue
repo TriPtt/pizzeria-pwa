@@ -20,9 +20,8 @@ const props = defineProps({
 
 const emit = defineEmits(['click'])
 
-// 🚀 PINIA STORES
 const cartStore = useCartStore()
-const wishlistStore = useWishlistStore()  // ✅ Changé
+const wishlistStore = useWishlistStore() 
 
 // Computed
 const isInWishlist = computed(() => {
@@ -69,7 +68,7 @@ const handleAddToCart = async () => {
   }
 }
 
-// ✅ Nouvelle fonction pour la wishlist
+
 const handleWishlist = async () => {
   if (wishlistAnimating.value) return
   
