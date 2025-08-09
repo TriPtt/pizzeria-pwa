@@ -1,84 +1,79 @@
-const CACHE_NAME = 'lafavola-v1.0.0';
+const CACHE_NAME = 'lafavola-v1.0.1'; // Changez la version
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/menu',
-  '/cart',
-  '/profile',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  './',
+  './manifest.json',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
 // Installation
 self.addEventListener('install', event => {
+  console.log('SW: Install event');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        console.log('SW: Caching app shell');
+        return cache.addAll(urlsToCache);
+      })
       .then(() => self.skipWaiting())
+      .catch(err => console.error('SW: Cache failed:', err))
   );
 });
 
 // Activation
 self.addEventListener('activate', event => {
+  console.log('SW: Activate event');
   event.waitUntil(
     caches.keys().then(cacheNames =>
       Promise.all(
-        cacheNames.map(name => name !== CACHE_NAME ? caches.delete(name) : null)
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
       )
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch handler : Cache First avec protections
+// Fetch
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // IGNORER : schemes non-http(s) (ex: chrome-extension://), websocket/hmr et le client Vite
+  // Ignorer certaines requêtes
   if (!['http:', 'https:'].includes(url.protocol)) return;
-  if (req.url.includes('/@vite/') || req.url.includes('/@vite/client')) return;
-  if (req.headers.get('accept') === 'text/event-stream') return; // SSE
-  if (req.url.startsWith('ws:') || req.url.startsWith('wss:')) return;
+  if (req.url.includes('/@vite/')) return;
+  if (req.url.includes('/api/')) return; // ⭐ Important : ignorer les API
+  if (req.headers.get('accept') === 'text/event-stream') return;
 
-  event.respondWith((async () => {
-    // Try cache first
-    const cached = await caches.match(req);
-    if (cached) return cached;
-
-    // Otherwise network fetch
-    try {
-      const networkResponse = await fetch(req);
-
-      // Only cache GET requests and successful 200 OK responses with http(s)
-      if (
-        req.method === 'GET' &&
-        networkResponse &&
-        networkResponse.status === 200 &&
-        ['basic', 'cors'].includes(networkResponse.type)
-      ) {
-        const responseToCache = networkResponse.clone();
-        try {
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put(req, responseToCache);
-        } catch (err) {
-          // Ne pas laisser le SW crasher pour un échec de cache (quota, scheme, etc.)
-          console.warn('cache.put failed, skipping:', err);
-        }
-      }
-
-      return networkResponse;
-    } catch (err) {
-      // En cas d'erreur réseau, fournir fallback pour les documents
-      if (req.destination === 'document') {
-        const fallback = await caches.match('/');
-        if (fallback) return fallback;
-      }
-      // Pour autres cas, rejeter (la requête échouera)
-      throw err;
-    }
-  })());
+  event.respondWith(handleFetch(req));
 });
+
+async function handleFetch(req) {
+  // Pour les documents HTML (navigation SPA)
+  if (req.destination === 'document') {
+    try {
+      return await fetch(req);
+    } catch {
+      // Fallback vers la page principale pour SPA
+      return caches.match('./') || fetch('./');
+    }
+  }
+
+  // Cache first pour les autres ressources
+  const cached = await caches.match(req);
+  if (cached) return cached;
+
+  try {
+    const response = await fetch(req);
+    if (req.method === 'GET' && response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(req, response.clone()).catch(console.warn);
+    }
+    return response;
+  } catch (err) {
+    throw err;
+  }
+}
 
 // Push notifications (inchangé)
 self.addEventListener('push', event => {
