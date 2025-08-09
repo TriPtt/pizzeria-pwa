@@ -32,13 +32,13 @@ export const useWishlistStore = defineStore('wishlist', () => {
     error.value = null
 
     try {
-      console.log('🔍 Fetching wishlist...')
+      // console.log('🔍 Fetching wishlist...')
       
       // ✅ Utilisation de l'instance api configurée
       const response = await api.get('/api/wishlist')
       
       items.value = response.data.items || []
-      console.log(`✅ Wishlist loaded: ${items.value.length} items`)
+      // console.log(`✅ Wishlist loaded: ${items.value.length} items`)
       
       localStorage.setItem('wishlist', JSON.stringify(items.value))
       return response.data
@@ -154,7 +154,7 @@ export const useWishlistStore = defineStore('wishlist', () => {
     error.value = null
 
     try {
-      console.log('🔍 Clearing wishlist...')
+      // console.log('🔍 Clearing wishlist...')
       
       // ✅ Utilisation de l'instance api
       const response = await api.delete('/api/wishlist/clear')
@@ -175,7 +175,7 @@ export const useWishlistStore = defineStore('wishlist', () => {
   }
 
   const initializeWishlist = async () => {
-    console.log('🚀 Initializing wishlist...')
+    // console.log('🚀 Initializing wishlist...')
     
     try {
       const saved = localStorage.getItem('wishlist')

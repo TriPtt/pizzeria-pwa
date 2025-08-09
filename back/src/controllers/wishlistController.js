@@ -5,7 +5,7 @@ const wishlistController = {
   getWishlist: async (req, res) => {
     try {
       const userId = req.user.id
-      console.log('🔍 Fetching wishlist for user:', userId)
+      // console.log('🔍 Fetching wishlist for user:', userId)
 
       const query = `
         SELECT 
@@ -28,7 +28,7 @@ const wishlistController = {
 
       const result = await pool.query(query, [userId])
       
-      console.log(`✅ Found ${result.rows.length} wishlist items`)
+      // console.log(`✅ Found ${result.rows.length} wishlist items`)
       
       res.json({
         success: true,
@@ -49,7 +49,7 @@ const wishlistController = {
   addToWishlist: async (req, res) => {
     const userId = req.user.id
     const { product_id } = req.body
-    console.log('🔍 Adding to wishlist:', { userId, product_id })
+    // console.log('🔍 Adding to wishlist:', { userId, product_id })
 
     // Validation
     if (!product_id || isNaN(product_id)) {
@@ -67,7 +67,7 @@ const wishlistController = {
         `
         const result = await pool.query(insertQuery, [userId, product_id])
 
-        console.log('✅ Product added to wishlist:', result.rows[0].id)
+        // console.log('✅ Product added to wishlist:', result.rows[0].id)
 
         res.json({
             success: true,
@@ -97,7 +97,7 @@ const wishlistController = {
         })
       }
 
-      console.log('🔍 Removing from wishlist:', { userId, productId })
+      // console.log('🔍 Removing from wishlist:', { userId, productId })
 
       // Récupérer le nom du produit avant suppression
       const productQuery = `
@@ -125,7 +125,7 @@ const wishlistController = {
       }
       
       const productName = productResult.rows[0]?.name || 'Produit'
-      console.log('✅ Product removed from wishlist')
+      // console.log('✅ Product removed from wishlist')
       
       res.json({
         success: true,
@@ -145,12 +145,12 @@ const wishlistController = {
   clearWishlist: async (req, res) => {
     try {
       const userId = req.user.id
-      console.log('🔍 Clearing wishlist for user:', userId)
+      // console.log('🔍 Clearing wishlist for user:', userId)
 
       const deleteQuery = 'DELETE FROM wishlists WHERE user_id = $1 RETURNING id'
       const result = await pool.query(deleteQuery, [userId])
       
-      console.log(`✅ Cleared ${result.rows.length} wishlist items`)
+      // console.log(`✅ Cleared ${result.rows.length} wishlist items`)
       
       res.json({
         success: true,

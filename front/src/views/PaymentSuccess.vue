@@ -37,67 +37,108 @@ const loading = ref(true)
 const order = ref(null)
 const error = ref(null)
 
-const finalizeOrder = async () => {
-  const pendingOrder = localStorage.getItem('pendingOrder')
-  
-  if (!pendingOrder) {
-    console.error('Aucune commande en attente trouvée')
-    router.push('/')
-    return
-  }
-
+async function finalizeOrder() {
   try {
-    const orderData = JSON.parse(pendingOrder)
-    const token = authStore.token
-    
-    if (!token) {
-      console.error('Utilisateur non connecté')
-      error.value = 'Vous devez être connecté pour finaliser la commande'
-      setTimeout(() => router.push('/login'), 3000)
-      return
+    const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || 'null');
+    console.log('pendingOrder (full):', pendingOrder);
+    if (!pendingOrder) throw new Error('Aucune commande en attente trouvée');
+
+    // 1) Customer -> customer_name / customer_phone
+    const customer_name = (pendingOrder.customer?.name ?? pendingOrder.customer_name ?? '').trim();
+    const customer_phone = (pendingOrder.customer?.phone ?? pendingOrder.customer_phone ?? '').trim();
+
+    if (!customer_name || !customer_phone) {
+      console.error('Nom/téléphone manquant dans pendingOrder:', { customer_name, customer_phone, pendingOrder });
+      // Afficher un message à l'utilisateur au lieu d'envoyer la requête
+      return;
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/orders`, {
+    // 2) Normalize products -> items attendus par le backend
+    const rawProducts = Array.isArray(pendingOrder.products) ? pendingOrder.products : (pendingOrder.items || []);
+    if (!rawProducts.length) {
+      console.error('Aucun produit trouvé dans la commande', rawProducts);
+      return;
+    }
+
+    const normalizedItems = rawProducts.map((p, idx) => {
+      // Essayez plusieurs noms possibles pour l'id
+      const productId = p.id ?? p.product_id ?? p.productId ?? p.sku ?? null;
+      if (!productId) {
+        // Erreur explicite : vous n'avez pas d'ID produit -> impossible d'insérer la commande correctement
+        throw new Error(`Produit sans product_id détecté (index ${idx}). Champ requis manquant. Produit=${JSON.stringify(p)}`);
+      }
+      const idNum = Number(productId);
+      if (!Number.isFinite(idNum)) {
+        throw new Error(`product_id non numérique pour l'item ${idx} (${productId})`);
+      }
+      return {
+        product_id: idNum,
+        quantity: Math.max(1, parseInt(p.quantity ?? p.qty ?? 1, 10)),
+        base_price: Number(p.base_price ?? p.price ?? 0),
+        unit_price: Number(p.unit_price ?? p.finalPrice ?? p.price ?? 0),
+        customizations: p.customizations ?? {},
+        description: p.description ?? null
+      };
+    });
+
+    if (normalizedItems.length === 0) {
+      throw new Error('Aucun article valide à envoyer');
+    }
+    // 3) Construire le body conforme
+    const orderData = {
+      items: normalizedItems,
+      customer_name,
+      customer_phone,
+      pickup_date: pendingOrder.pickup_date,
+      pickup_time: pendingOrder.pickup_time,
+      notes: pendingOrder.notes ?? '',
+      total_amount: Number(pendingOrder.total_price ?? pendingOrder.total_amount ?? 0)
+    };
+
+    console.log('orderData to send:', orderData);
+
+    // 4) Envoi (auth si nécessaire)
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       body: JSON.stringify(orderData)
-    })
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Erreur response:', errorText)
-      throw new Error(`Erreur ${response.status}: ${errorText}`)
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error('Erreur response:', txt);
+      throw new Error(`Erreur ${res.status}: ${txt}`);
     }
 
-    const createdOrder = await response.json()
-    console.log('Commande créée:', createdOrder)
-    
-    // 💾 STOCKER DANS LOCALSTORAGE D'ABORD
-    const confirmationData = {
-      order_Number: createdOrder.order.id,
-      total_price: createdOrder.order.total_price,
-      pickup_Date: createdOrder.order.pickup_date,
-      pickup_Time: createdOrder.order.pickup_time
-    }
-    localStorage.setItem('orderConfirmation', JSON.stringify(confirmationData))
-    console.log('✅ Données stockées:', confirmationData)
-    
-    // 🧹 NETTOYER D'ABORD
-    localStorage.removeItem('pendingOrder')
-    cartStore.clear()
-    
-    // 🚀 REDIRIGER EN DERNIER
-    router.push({ name: 'order-confirmation' })
-    
+    const created = await res.json();
+    console.log('Commande créée:', created);
+
+    // nettoyage / redirect (exemple)
+    localStorage.removeItem('pendingOrder');
+    localStorage.setItem('orderConfirmation', JSON.stringify({
+      order_Number: created.order?.order_number ?? `CMD-${String(created.order?.id ?? '')}`,
+      total_price: created.order?.total_price ?? orderData.total_amount,
+      pickup_Date: created.order?.pickup_date ?? orderData.pickup_date,
+      pickup_Time: created.order?.pickup_time ?? orderData.pickup_time
+    }));
+
+    // rediriger ou afficher confirmation
+    // router.push({ name: 'order-confirmation' });
+
   } catch (err) {
-    console.error('Erreur:', err)
-    error.value = 'Erreur lors de la finalisation de la commande'
-    loading.value = false
+    if (err.name === 'AbortError') {
+      console.error('Requête timeout');
+    } else {
+      console.error('Erreur finalizeOrder:', err);
+    }
+    // Afficher message utilisateur
   }
 }
+
 
 onMounted(() => {
   finalizeOrder()

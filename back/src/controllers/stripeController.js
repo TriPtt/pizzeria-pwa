@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const api = process.env.FRONTEND_URL || 'http://localhost:5173';
+const api = process.env.VITE_API_URL || 'http://localhost:5173';
 
 export const createCheckoutSession = async (req, res) => {
   console.log("BODY REÇU :", req.body);

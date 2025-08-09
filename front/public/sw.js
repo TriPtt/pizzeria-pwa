@@ -1,93 +1,89 @@
-const CACHE_NAME = 'lafavola-v1.0.0'
+const CACHE_NAME = 'lafavola-v1.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  // Ajoute tes routes principales
   '/menu',
   '/cart',
   '/profile',
-  // Assets critiques (optionnel)
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
-]
+];
 
-// Installation du Service Worker
+// Installation
 self.addEventListener('install', event => {
-  console.log('🔧 Service Worker: Installation...')
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('📦 Service Worker: Cache ouvert')
-        return cache.addAll(urlsToCache)
-      })
-      .then(() => {
-        console.log('✅ Service Worker: Tous les fichiers mis en cache')
-        self.skipWaiting() // Force l'activation immédiate
-      })
-  )
-})
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
+  );
+});
 
-// Activation du Service Worker
+// Activation
 self.addEventListener('activate', event => {
-  console.log('🚀 Service Worker: Activation...')
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Service Worker: Suppression ancien cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
+    caches.keys().then(cacheNames =>
+      Promise.all(
+        cacheNames.map(name => name !== CACHE_NAME ? caches.delete(name) : null)
       )
-    }).then(() => {
-      console.log('✅ Service Worker: Activé et prêt!')
-      self.clients.claim() // Prend contrôle immédiatement
-    })
-  )
-})
+    ).then(() => self.clients.claim())
+  );
+});
 
-// Interception des requêtes (stratégie Cache First pour les assets)
+// Fetch handler : Cache First avec protections
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Retourne depuis le cache si disponible
-        if (response) {
-          return response
-        }
-        
-        // Sinon, récupère depuis le réseau
-        return fetch(event.request).then(response => {
-          // Vérifie si la réponse est valide
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response
-          }
-          
-          // Clone la réponse pour la mettre en cache
-          const responseToCache = response.clone()
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(event.request, responseToCache)
-            })
-          
-          return response
-        })
-      })
-      .catch(() => {
-        // Fallback en cas d'erreur (mode hors ligne)
-        if (event.request.destination === 'document') {
-          return caches.match('/')
-        }
-      })
-  )
-})
+  const req = event.request;
+  const url = new URL(req.url);
 
-// Gestion des notifications push (optionnel)
+  // IGNORER : schemes non-http(s) (ex: chrome-extension://), websocket/hmr et le client Vite
+  if (!['http:', 'https:'].includes(url.protocol)) return;
+  if (req.url.includes('/@vite/') || req.url.includes('/@vite/client')) return;
+  if (req.headers.get('accept') === 'text/event-stream') return; // SSE
+  if (req.url.startsWith('ws:') || req.url.startsWith('wss:')) return;
+
+  event.respondWith((async () => {
+    // Try cache first
+    const cached = await caches.match(req);
+    if (cached) return cached;
+
+    // Otherwise network fetch
+    try {
+      const networkResponse = await fetch(req);
+
+      // Only cache GET requests and successful 200 OK responses with http(s)
+      if (
+        req.method === 'GET' &&
+        networkResponse &&
+        networkResponse.status === 200 &&
+        ['basic', 'cors'].includes(networkResponse.type)
+      ) {
+        const responseToCache = networkResponse.clone();
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(req, responseToCache);
+        } catch (err) {
+          // Ne pas laisser le SW crasher pour un échec de cache (quota, scheme, etc.)
+          console.warn('cache.put failed, skipping:', err);
+        }
+      }
+
+      return networkResponse;
+    } catch (err) {
+      // En cas d'erreur réseau, fournir fallback pour les documents
+      if (req.destination === 'document') {
+        const fallback = await caches.match('/');
+        if (fallback) return fallback;
+      }
+      // Pour autres cas, rejeter (la requête échouera)
+      throw err;
+    }
+  })());
+});
+
+// Push notifications (inchangé)
 self.addEventListener('push', event => {
   if (event.data) {
-    const data = event.data.json()
+    const data = event.data.json();
     const options = {
       body: data.body,
       icon: '/icons/icon-192x192.png',
@@ -95,21 +91,10 @@ self.addEventListener('push', event => {
       vibrate: [100, 50, 100],
       data: data.data || {},
       actions: [
-        {
-          action: 'view',
-          title: 'Voir',
-          icon: '/icons/view-icon.png'
-        },
-        {
-          action: 'close',
-          title: 'Fermer',
-          icon: '/icons/close-icon.png'
-        }
+        { action: 'view', title: 'Voir', icon: '/icons/view-icon.png' },
+        { action: 'close', title: 'Fermer', icon: '/icons/close-icon.png' }
       ]
-    }
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title, options)
-    )
+    };
+    event.waitUntil(self.registration.showNotification(data.title, options));
   }
-})
+});

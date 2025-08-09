@@ -119,11 +119,11 @@ const handleButtonClick = async () => {
       // Installation PWA
       const success = await installPWA()
       if (success) {
-        console.log('✅ PWA installée avec succès!')
+        // console.log('✅ PWA installée avec succès!')
       }
     } else {
       // Fallback: ajouter aux favoris ou autre action
-      console.log('📌 Ajout aux favoris du navigateur')
+      // console.log('📌 Ajout aux favoris du navigateur')
     }
     
     emit('buttonClick')

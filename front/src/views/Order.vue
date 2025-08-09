@@ -263,114 +263,84 @@ const fetchAvailableSlots = async (date) => {
 
 const submitOrder = async () => {
   if (submitting.value) return
-      
-  // Validation des champs
-  if (!customerInfo.value.name.trim()) {
-    alert('Veuillez entrer votre nom')
-    return
-  }
-  
-  if (!customerInfo.value.phone.trim()) {
-    alert('Veuillez entrer votre numéro de téléphone')
-    return
-  }
-  
-  if (!selectedSlot.value) {
-    alert('Veuillez sélectionner un créneau de retrait')
-    return
-  }
+
+  // Validation des champs (inchangé)
+  if (!customerInfo.value.name.trim()) { alert('Veuillez entrer votre nom'); return }
+  if (!customerInfo.value.phone.trim()) { alert('Veuillez entrer votre numéro de téléphone'); return }
+  if (!selectedSlot.value) { alert('Veuillez sélectionner un créneau de retrait'); return }
 
   submitting.value = true
 
   try {
-    // 🎯 1. Créer la commande via ordersStore AVEC TOUS LES PRIX
-    const orderData = {
-      items: cartItems.value.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        base_price: item.price, // 🆕 Prix de base (sans suppléments)
-        unit_price: item.finalPrice, // 🆕 Prix final (avec suppléments)
-        customizations: item.customizations
-      })),
-      customer_name: customerInfo.value.name,
-      customer_phone: customerInfo.value.phone,
-      pickup_date: selectedDate.value,
-      pickup_time: selectedSlot.value.time,
-      notes: customerInfo.value.notes,
-      total_amount: totalPrice.value
-    }
-
-    console.log('🚀 Création commande avec données:', orderData)
-
-    // Créer la commande en base
-    const createdOrder = await ordersStore.createOrder(orderData)
-    
-    console.log('✅ Commande créée:', createdOrder)
-
-    // 🎯 2. Créer la session Stripe avec les BONS prix
+    // Préparer produits pour Stripe
     const stripeProducts = cartItems.value.map(item => ({
       name: item.name,
-      price: item.finalPrice, // ✅ Prix final avec suppléments
+      price: item.finalPrice,
       quantity: item.quantity,
-      // 🆕 Détail des customizations pour Stripe
-      description: item.customizations ? 
-        [
-          ...(item.customizations.supplements?.map(s => `+ ${s.name}`) || []),
-          ...(item.customizations.removedIngredients?.map(r => `- ${r.name}`) || [])
-        ].join(', ') : null
+      description: item.customizations ? [
+        ...(item.customizations.supplements?.map(s => `+ ${s.name}`) || []),
+        ...(item.customizations.removedIngredients?.map(r => `- ${r.name}`) || [])
+      ].join(', ') : null
     }))
 
-    console.log('💳 Produits pour Stripe:', stripeProducts)
-
-    const stripeResponse = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/stripe/create-checkout-session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+    // Préparer l'objet de commande en attente (sera utilisé après paiement)
+    const orderData = {
+      items: cartItems.value,
+      products_for_stripe: stripeProducts,
+      total_price: totalPrice.value,
+      customer: {
+        name: customerInfo.value.name,
+        phone: customerInfo.value.phone,
+        notes: customerInfo.value.notes || ''
       },
+      pickup_date: selectedDate.value,
+      pickup_time: selectedSlot.value.time,
+      created_at: new Date().toISOString()
+      // vous pouvez ajouter d'autres champs utiles (store id, user id, etc.)
+    }
+
+    // Sauvegarder localement AVANT de rediriger vers Stripe
+    localStorage.setItem('pendingOrder', JSON.stringify(orderData))
+
+    // Appel backend : créer session Stripe (NE PAS créer la commande ici)
+    const resp = await fetch(`${import.meta.env.VITE_API_URL_BACK}/api/stripe/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         products: stripeProducts,
-        orderId: createdOrder.id, // 🆕 Référence à la commande
-        metadata: {
-          order_id: createdOrder.id,
-          customer_name: customerInfo.value.name,
-          pickup_date: selectedDate.value,
-          pickup_time: selectedSlot.value.time
-        }
+        customer: { name: orderData.customer.name, phone: orderData.customer.phone },
+        pickup_date: orderData.pickup_date,
+        pickup_time: orderData.pickup_time
       })
     })
 
-    if (!stripeResponse.ok) {
-      const errorData = await stripeResponse.json()
-      throw new Error(`Erreur Stripe: ${errorData.message || 'Erreur paiement'}`)
+    if (!resp.ok) {
+      // Si backend renvoie une erreur, on retire pendingOrder pour éviter orphelin
+      localStorage.removeItem('pendingOrder')
+      const err = await resp.json().catch(() => ({ message: 'Erreur création session paiement' }))
+      throw new Error(err.message || 'Erreur création session paiement')
     }
 
-    const { id: sessionId } = await stripeResponse.json()
-
-    // 🎯 3. Vider le panier et rediriger
-    cartStore.clear()
-
-    // 4. Redirection Stripe
+    const { id: sessionId } = await resp.json()
     const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
     const { error } = await stripe.redirectToCheckout({ sessionId })
-
     if (error) {
-      console.error('❌ Erreur redirection Stripe:', error)
-      alert('Erreur lors de la redirection vers le paiement')
+      // Si redirect échoue, retirer pendingOrder ou laisser pour retry selon choix
+      console.error('Stripe redirect error', error)
+      localStorage.removeItem('pendingOrder')
+      throw error
     }
+
+    // note: redirection va quitter la page, code ci-dessous n'exécutera pas normalement
 
   } catch (error) {
-    console.error('❌ Erreur complète commande:', error)
-    
-    // Affichage d'erreur plus détaillé
-    if (ordersStore.error) {
-      alert(`Erreur: ${ordersStore.error}`)
-    } else {
-      alert(`Erreur lors de la création de la commande: ${error.message}`)
-    }
+    console.error(error)
+    alert(`Erreur: ${error.message}`)
   } finally {
     submitting.value = false
   }
 }
+
 
 // Watchers
 watch(selectedDate, (newDate) => {

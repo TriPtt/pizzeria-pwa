@@ -4,19 +4,23 @@ const pool = require("../db");
 exports.createOrder = async (req, res) => {
   const client = await pool.connect();
   try {
-    const { 
-      items,
-      customer_name,
-      customer_phone,
+    // Normalize incoming body: accept either customer_name/customer_phone
+    // or customer: { name, phone }
+    const {
+      items: rawItems = [],
+      customer_name: bodyCustomerName,
+      customer_phone: bodyCustomerPhone,
       pickup_date,
       pickup_time,
       notes,
       total_amount
     } = req.body;
 
-    console.log('📦 Création commande:', req.body);
+    const customer_name = (bodyCustomerName ?? req.body.customer?.name ?? '').trim();
+    const customer_phone = (bodyCustomerPhone ?? req.body.customer?.phone ?? '').trim();
 
-    if (!items || items.length === 0) {
+    // Basic validations
+    if (!rawItems || rawItems.length === 0) {
       return res.status(400).json({ message: "Aucun article fourni" });
     }
 
@@ -24,30 +28,49 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: "Nom et téléphone requis" });
     }
 
+    // Ensure user is present (adjust if orders can be anonymous)
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Utilisateur non authentifié" });
+    }
+
+    // Normalize items: accept either item.product_id or item.id
+    const items = rawItems.map(item => ({
+      product_id: item.product_id ?? item.id ?? null,
+      quantity: item.quantity ?? item.qty ?? 1,
+      base_price: item.base_price ?? item.price ?? item.unit_price ?? 0,
+      unit_price: item.unit_price ?? item.price ?? item.unit_price ?? 0,
+      customizations: item.customizations ?? {}
+    }));
+
+    // Verify all product_id present
+    const missingPid = items.find(i => !i.product_id);
+    if (missingPid) {
+      return res.status(400).json({ message: "Chaque item doit contenir product_id (ou id)" });
+    }
+
     await client.query("BEGIN");
 
     // Récupération des produits pour validation et noms
     const productIds = items.map(item => item.product_id);
     const productQuery = await client.query(
-      "SELECT id, name, price FROM products WHERE id = ANY($1)",
+      "SELECT id, name, price FROM products WHERE id = ANY($1::int[])",
       [productIds]
     );
 
     const products = productQuery.rows;
     const nameMap = {};
-    
-    products.forEach(p => {
-      nameMap[p.id] = p.name;
-    });
+    products.forEach(p => { nameMap[p.id] = p.name; });
 
     // Vérifier que tous les produits existent
     for (const item of items) {
       if (!nameMap[item.product_id]) {
-        throw new Error(`Produit ID ${item.product_id} non trouvé`);
+        // Rollback and return a clear error
+        await client.query("ROLLBACK");
+        return res.status(400).json({ message: `Produit ID ${item.product_id} non trouvé` });
       }
     }
 
-    // Utiliser le total calculé côté front
+    // Utiliser le total calculé côté front (fallback 0)
     const finalTotal = parseFloat(total_amount) || 0;
 
     // Insertion dans orders
@@ -61,19 +84,11 @@ exports.createOrder = async (req, res) => {
     const orderId = orderRes.rows[0].id;
     const createdAt = orderRes.rows[0].created_at;
 
-    // Insertion dans order_items avec TOUS les champs requis
+    // Insertion dans order_items
     const insertPromises = items.map(item => {
       const basePrice = parseFloat(item.base_price) || 0;
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
-      
-      console.log('🔍 Insertion item:', {
-        orderId,
-        productId: item.product_id,
-        quantity,
-        basePrice,
-        unitPrice
-      });
 
       return client.query(
         `INSERT INTO order_items (order_id, product_id, quantity, base_price, unit_price, created_at) 
@@ -83,34 +98,31 @@ exports.createOrder = async (req, res) => {
     });
 
     await Promise.all(insertPromises);
-
     await client.query("COMMIT");
 
-    // Préparation des items pour la réponse
+    // Préparation de la réponse
     const responseItems = items.map(item => {
       const basePrice = parseFloat(item.base_price) || 0;
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
-      
       return {
         product_id: item.product_id,
         name: nameMap[item.product_id],
-        quantity: quantity,
+        quantity,
         base_price: basePrice,
         unit_price: unitPrice,
-        total: unitPrice * quantity, // 🎯 Calcul correct du total par item
+        total: unitPrice * quantity,
         customizations: item.customizations || {}
       };
     });
 
-    // ✅ Réponse finale
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
       message: "Commande créée avec succès",
       order: {
         id: orderId,
         order_number: `CMD-${String(orderId).padStart(3, '0')}`,
-        total_price: finalTotal, // 🎯 Plus de référence à 'total'
+        total_price: finalTotal,
         status: 'pending',
         created_at: createdAt,
         customer_name,
@@ -123,18 +135,18 @@ exports.createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    await client.query("ROLLBACK");
+    try { await client.query("ROLLBACK"); } catch (e) { /* ignore */ }
     console.error('❌ Erreur création commande:', error);
-    
-    if (error.message.includes('non trouvé')) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Erreur lors de la création de la commande" });
+    // Provide clearer client error payloads for validation errors
+    if (error.message && error.message.includes('non trouvé')) {
+      return res.status(400).json({ message: error.message });
     }
+    res.status(500).json({ message: "Erreur lors de la création de la commande" });
   } finally {
     client.release();
   }
 };
+
 
 // Récupérer toutes les commandes (admin uniquement)
 exports.getAllOrders = async (req, res) => {
