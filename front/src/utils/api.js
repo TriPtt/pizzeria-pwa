@@ -11,22 +11,16 @@ const api = axios.create({
 // ✅ Intercepteur avec plus de debug
 api.interceptors.request.use(
   (config) => {
-    console.log('🔍 API Request Debug:')
-    console.log('  - URL:', config.baseURL + config.url)
-    console.log('  - Method:', config.method?.toUpperCase())
     
     const token = localStorage.getItem('authToken')
-    console.log('  - Token in localStorage:', token ? 'YES ✅' : 'NO ❌')
     
     if (token) {
-      console.log('  - Token preview:', token.substring(0, 30) + '...')
       config.headers.Authorization = `Bearer ${token}`
-      console.log('  - Authorization header:', config.headers.Authorization.substring(0, 40) + '...')
     } else {
       console.log('  - ❌ NO TOKEN FOUND IN LOCALSTORAGE!')
     }
     
-    console.log('  - All headers:', config.headers)
+    // console.log('  - All headers:', config.headers)
     
     return config
   },
@@ -38,7 +32,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.status, response.config.url)
+    // console.log('✅ API Response:', response.status, response.config.url)
     return response
   },
   (error) => {

@@ -12,7 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => {
     const result = !!user.value && !!token.value
-    console.log('🔍 isAuthenticated computed:', result, { user: user.value, token: token.value })
+    // console.log('🔍 isAuthenticated computed:', result, { user: user.value, token: token.value })
     return result
   })
   const userName = computed(() => user.value?.name || '')
@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       const data = await response.json()
-      console.log('🔍 Login data received:', data)
+      // console.log('🔍 Login data received:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Erreur de connexion')
@@ -149,21 +149,21 @@ export const useAuthStore = defineStore('auth', () => {
     // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
     const savedToken = localStorage.getItem('authToken')
     
-    console.log('🔍 Init auth - savedUser:', savedUser ? 'YES' : 'NO')
-    console.log('🔍 Init auth - savedToken:', savedToken ? 'YES' : 'NO')
+    // console.log('🔍 Init auth - savedUser:', savedUser ? 'YES' : 'NO')
+    // console.log('🔍 Init auth - savedToken:', savedToken ? 'YES' : 'NO')
     
     if (savedUser && savedToken) {
       try {
         user.value = JSON.parse(savedUser)
         token.value = savedToken
-        console.log('🔄 Auth restored from localStorage:', user.value.name)
+        // console.log('🔄 Auth restored from localStorage:', user.value.name)
       } catch (error) {
-        console.error('❌ Erreur parsing user data:', error)
+        // console.error('❌ Erreur parsing user data:', error)
         localStorage.removeItem('user')
         localStorage.removeItem('authToken')
       }
     } else {
-      console.log('👤 No saved auth found')
+      console.log('No saved auth found')
     }
   }
 

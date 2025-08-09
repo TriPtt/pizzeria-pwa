@@ -16,7 +16,7 @@ export function usePWA() {
     
     // Écouter l'événement beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('💾 PWA: Installation disponible!')
+      // console.log('💾 PWA: Installation disponible!')
       // Empêche l'affichage automatique du prompt
       e.preventDefault()
       // Stocke l'événement pour l'utiliser plus tard
@@ -26,7 +26,7 @@ export function usePWA() {
     
     // Écouter l'installation
     window.addEventListener('appinstalled', () => {
-      console.log('✅ PWA: App installée!')
+      // console.log('✅ PWA: App installée!')
       isInstalled.value = true
       isInstallable.value = false
       deferredPrompt.value = null
@@ -40,11 +40,11 @@ export function usePWA() {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js')
-        console.log('✅ Service Worker enregistré:', registration.scope)
+        // console.log('✅ Service Worker enregistré:', registration.scope)
         
         // Vérifier les mises à jour
         registration.addEventListener('updatefound', () => {
-          console.log('🔄 Nouvelle version disponible!')
+          // console.log('🔄 Nouvelle version disponible!')
         })
         
       } catch (error) {

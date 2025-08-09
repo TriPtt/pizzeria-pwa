@@ -96,7 +96,7 @@ const handleWishlist = async () => {
 }
 
 const handleImageLoad = () => {
-  console.log('Image chargée:', props.product.name)
+  // console.log('Image chargée:', props.product.name)
 }
 
 const handleImageError = () => {
