@@ -124,13 +124,13 @@ const props = defineProps({
   openingHours: {
     type: Object,
     default: () => ({
-      lundi: '11h30 - 14h30, 18h30 - 22h30',
-      mardi: '11h30 - 14h30, 18h30 - 22h30', 
-      mercredi: '11h30 - 14h30, 18h30 - 22h30',
-      jeudi: '11h30 - 14h30, 18h30 - 22h30',
-      vendredi: '11h30 - 14h30, 18h30 - 23h00',
-      samedi: '11h30 - 23h00',
-      dimanche: '11h30 - 22h00'
+      lundi: 'Fermé',
+      mardi: '18h30 - 21h30', 
+      mercredi: '18h30 - 21h30',
+      jeudi: '11h30 - 13h30, 18h30 - 21h30',
+      vendredi: '18h00 - 22h00',
+      samedi: '18h00 - 22h00',
+      dimanche: '18h30 - 21h30'
     })
   },
   defaultExpanded: {

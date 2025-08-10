@@ -24,10 +24,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '../stores/cartStore'
 
 const router = useRouter()
 const orderData = ref({})
 const debugInfo = ref('')
+const cartStore = useCartStore()
 
 onMounted(() => {
   console.log('🏪 OrderConfirmation mounted')
@@ -57,6 +59,10 @@ onMounted(() => {
     const key = localStorage.key(i)
     console.log(`  ${key}: ${localStorage.getItem(key)}`)
   }
+
+  // Nettoyer le panier
+  cartStore.clear() // Si cette méthode existe
+  
 })
 const goHome = () => {
   router.push('/')

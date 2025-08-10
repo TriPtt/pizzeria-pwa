@@ -54,11 +54,11 @@
 
     <!-- Footer -->
     <FooterSection 
-      address="123 Rue de la Pizza, 75001 Paris"
-      phone="01 23 45 67 89"
-      email="contact@lafavola.fr"
-      city="Paris"
-      :start-year="2010"
+      address="39 Rue Gambetta, 17400 Saint-Jean-d'Angély"
+      phone="07 44 52 57 77"
+      email="lafavola17@gmail.com"
+      city="Saint-Jean-d'Angély"
+      :start-year="2021"
     />
   </div>
 </template>
