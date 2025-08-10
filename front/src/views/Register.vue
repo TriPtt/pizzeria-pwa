@@ -39,16 +39,20 @@
         
         <div class="input-group">
           <input 
-            v-model="form.password_hash"
+            v-model="form.password"
             type="password"
             placeholder="Mot de passe"
             class="input-field"
             required 
           />
         </div>
+
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
         
-        <button type="submit" class="register-button">
-          Créer un compte
+        <button type="submit" class="register-button" :disabled="authStore.isLoading">
+          {{ authStore.isLoading ? 'Création...' : 'Créer un compte' }}
         </button>
       </form>
       
@@ -61,9 +65,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+import { ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
+
+const authStore = useAuthStore()
+const error = ref('')
 
 const router = useRouter()
 const form = ref({
@@ -73,16 +80,27 @@ const form = ref({
   password: ''
 })
 
-const api = import.meta.env.VITE_API_URL_BACK 
-
 const handleRegister = async () => {
   try {
-    const res = await axios.post(`${api}/api/auth/register`, form.value)
-    console.log(res.data)
-    router.push('/login')
+    error.value = ''
+    
+    if (!form.value.name || !form.value.email || !form.value.phone || !form.value.password) {
+      error.value = 'Veuillez remplir tous les champs'
+      return
+    }
+
+    await authStore.register(form.value)
+
+    if (authStore.error) {
+      error.value = authStore.error
+      return
+    }
+    
+    router.push('/')
+    
   } catch (err) {
-    console.error(err.response?.data || err.message)
-    alert('Registration failed')
+    console.error('Erreur inscription:', err)
+    error.value = err.message || 'Erreur lors de l\'inscription'
   }
 }
 </script>
@@ -120,6 +138,13 @@ const handleRegister = async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: -1rem;
+  margin-bottom: 1rem;
 }
 
 .input-group {

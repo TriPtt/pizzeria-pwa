@@ -28,6 +28,15 @@ const register = async (req, res) => {
       [name, email, passwordHash, phone || null, role || 'client']
     );
 
+    const user = result.rows[0];
+
+    const token = generateToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+
     return res.status(201).json({
       message: 'Inscription réussie',
       user: result.rows[0],

@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(null)
   const isLoading = ref(false)
+  const error = ref('')
   
   const api = import.meta.env.VITE_API_URL_BACK;
 
@@ -21,6 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   const login = async (email, password) => {
     isLoading.value = true
+    error.value = ''
     try {
       const response = await fetch(`${api}/api/auth/login`, {
         method: 'POST',
@@ -45,36 +47,52 @@ export const useAuthStore = defineStore('auth', () => {
       return data
     } catch (error) {
       console.error('Erreur login:', error)
+      error.value = error.message
       throw error
     } finally {
       isLoading.value = false
     }
   }
 
-  const register = async (userData) => {
+   const register = async (userData) => {
     isLoading.value = true
+    error.value = ''
+    
     try {
+      const registerData = {
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        password_hash: userData.password
+      }
+
       const response = await fetch(`${api}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(registerData),
       })
 
       const data = await response.json()
+      console.log('🔍 Réponse backend register:', data)
       
       if (!response.ok) {
         throw new Error(data.error || 'Erreur d\'inscription')
       }
 
-      // ✅ FIX: Utilise "utilisateur" ici aussi
-      setAuth(data.utilisateur, data.token)
+      if (data.token && data.user) {
+      setAuth(data.user, data.token)
+    } else {
+      console.log('❌ Pas de token dans la réponse:', data)
+    }
       
       return data
-    } catch (error) {
-      console.error('Erreur register:', error)
-      throw error
+      
+    } catch (err) {
+      console.error('Erreur register:', err)
+      error.value = err.message
+      throw err
     } finally {
       isLoading.value = false
     }
@@ -84,12 +102,12 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     user.value = null
     token.value = null
+    error.value = ''
     
     localStorage.removeItem('user')
-    // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
     localStorage.removeItem('authToken')
     
-    console.log('👋 User logged out')
+    // console.log('👋 User logged out')
   }
 
   const updateUser = async (userData) => {
@@ -111,7 +129,6 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error(data.error || 'Erreur mise à jour')
       }
 
-      // Mettre à jour le user local
       user.value = { ...user.value, ...data.user }
       localStorage.setItem('user', JSON.stringify(user.value))
       
@@ -124,41 +141,28 @@ export const useAuthStore = defineStore('auth', () => {
 
 
   const setAuth = (userData, authToken) => {
-    console.log('🔍 setAuth called with:')
-    console.log('- userData:', userData)
-    console.log('- authToken:', authToken)
-    
     user.value = userData
     token.value = authToken
     
     if (userData) {
       localStorage.setItem('user', JSON.stringify(userData))
-      console.log('✅ User saved:', userData.name, userData.email)
     }
     
     if (authToken) {
-      // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
       localStorage.setItem('authToken', authToken)
-      console.log('✅ Token saved in localStorage as authToken')
     }
   }
 
 
   const initAuth = () => {
     const savedUser = localStorage.getItem('user')
-    // ✅ CORRECTION: Utiliser 'authToken' au lieu de 'token'
     const savedToken = localStorage.getItem('authToken')
-    
-    // console.log('🔍 Init auth - savedUser:', savedUser ? 'YES' : 'NO')
-    // console.log('🔍 Init auth - savedToken:', savedToken ? 'YES' : 'NO')
     
     if (savedUser && savedToken) {
       try {
         user.value = JSON.parse(savedUser)
         token.value = savedToken
-        // console.log('🔄 Auth restored from localStorage:', user.value.name)
       } catch (error) {
-        // console.error('❌ Erreur parsing user data:', error)
         localStorage.removeItem('user')
         localStorage.removeItem('authToken')
       }
@@ -173,6 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     token,
     isLoading,
+    error,
     
     // Getters
     isAuthenticated,
