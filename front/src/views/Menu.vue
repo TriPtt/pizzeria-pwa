@@ -24,6 +24,13 @@
       </template>
     </AppHeader>
 
+    <SearchModal
+      :isOpen="isSearchOpen"
+      :products="products"
+      @close="closeSearch"
+      @selectProduct="handleProductSelect"
+    />
+
     <!-- Filtres de catégories -->
     <div class="category-filters">
       <div class="filters-container">
@@ -101,12 +108,14 @@ import AppHeader from '../components/AppHeader.vue'
 import ProductCard from '../components/ProductCard.vue'
 import SortModal from '../components/SortModal.vue'
 import FilterModal from '../components/FilterModal.vue'
+import SearchModal from '../components/SearchModal.vue'
 
 // Stores
 const productsStore = useProductsStore()
 const cartStore = useCartStore()
 const route = useRoute()
 const router = useRouter()
+const isSearchOpen = ref(false)
 
 // État local
 const selectedCategory = ref('all')
@@ -225,15 +234,11 @@ const handleCartOpen = () => {
 }
 
 const handleSearchOpen = () => {
-  router.push('/search')
+  isSearchOpen.value = true
 }
 
-const openSortMenu = () => {
-  showSortModal.value = true
-}
-
-const openFilterMenu = () => {
-  showFilterModal.value = true
+const closeSearch = () => {
+  isSearchOpen.value = false
 }
 
 const handleSort = (newSort) => {

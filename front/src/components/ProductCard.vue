@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import LazyImage from './LazyImage.vue'
 import { useCartStore } from '../stores/cartStore'
-import { useWishlistStore } from '../stores/wishlistStore'  // ✅ Changé
+import { useWishlistStore } from '../stores/wishlistStore'
 import { useOverlayStore } from '../stores/overlayStore'
 
 const overlayStore = useOverlayStore()

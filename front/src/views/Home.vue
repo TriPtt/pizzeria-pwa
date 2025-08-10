@@ -9,6 +9,13 @@
       @open-search="handleSearchOpen"
     />
 
+    <SearchModal
+      :isOpen="isSearchOpen"
+      :products="products"
+      @close="closeSearch"
+      @selectProduct="handleProductSelect"
+    />
+
     <!-- Featured -->
     <FeaturedSection 
       title="En ce moment"
@@ -75,6 +82,7 @@ import AppPromoSection from '../components/AppPromoSection.vue'
 import FooterSection from '../components/FooterSection.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
+import SearchModal from '../components/SearchModal.vue'
 
 const cartStore = useCartStore()
 const favoritesStore = useFavoritesStore()
@@ -86,6 +94,7 @@ const loading = ref(true)
 const error = ref(null)
 const activeCategory = ref(null)
 const favorites = ref([])
+const isSearchOpen = ref(false)
 
 // Modifier la fonction addToCart
 const addToCart = (product) => {
@@ -144,7 +153,13 @@ const handleMenuToggle = () => console.log('🍔 Menu toggle')
 const handleCartOpen = () => {
   router.push('/cart')
 }
-const handleSearchOpen = () => console.log('🔍 Ouvrir recherche')
+const handleSearchOpen = () => {
+  isSearchOpen.value = true
+}
+
+const closeSearch = () => {
+  isSearchOpen.value = false
+}
 
 const handleFeaturedClick = () => console.log('🍕 Featured clicked!')
 
