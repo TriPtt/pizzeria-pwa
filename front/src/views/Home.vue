@@ -51,8 +51,11 @@
 
     <!-- App Promo -->
     <AppPromoSection 
-      title="Téléchargez l'app LA FAVOLA pour commander plus rapidement !"
-      button-text="Installer l'app"
+      v-if="!isInstalled"
+      :title="isInstallable ? 
+        'Installez LA FAVOLA en 1 clic !' : 
+        'Ajoutez LA FAVOLA à votre écran d\'accueil !'"
+      :button-text="isInstallable ? 'Installer maintenant' : 'Instructions'"
       theme="purple"
       :dismissible="true"
       @button-click="handleAppInstall"
@@ -83,9 +86,11 @@ import FooterSection from '../components/FooterSection.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
 import SearchModal from '../components/SearchModal.vue'
+import { usePWA } from '../composables/usePWA'
 
 const cartStore = useCartStore()
 const favoritesStore = useFavoritesStore()
+const { isSupported, isInstallable, isInstalled, installPWA } = usePWA()
 
 // États
 const cartItems = ref([])
@@ -93,7 +98,6 @@ const products = ref([])
 const loading = ref(true)
 const error = ref(null)
 const activeCategory = ref(null)
-const favorites = ref([])
 const isSearchOpen = ref(false)
 
 // Modifier la fonction addToCart
@@ -185,9 +189,45 @@ const handleSeeAll = (type) => {
   router.push(`/products/${type}`)
 }
 
-const handleAppInstall = () => {
-  console.log('📱 Installation de l\'app...')
+const handleAppInstall = async () => {
+  console.log('📱 Tentative d\'installation...')
+  
+  // Si déjà installée
+  if (isInstalled.value) {
+    alert('✅ L\'application est déjà installée!')
+    return
+  }
+  
+  // Si installable via le prompt
+  if (isInstallable.value) {
+    console.log('🚀 Installation via prompt...')
+    const installed = await installPWA()
+    
+    if (installed) {
+      console.log('✅ Installation réussie!')
+      return // 🚨 AJOUTE CE RETURN !
+    } else {
+      console.log('❌ Installation annulée')
+      return // 🚨 AJOUTE CE RETURN !
+    }
+  }
+  
+  // 🚨 AJOUTE CONSOLE.LOG
+  console.log('💡 Fallback vers instructions manuelles')
+  
+  // Fallback : Instructions manuelles
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  const isAndroid = /Android/.test(navigator.userAgent)
+  
+  if (isIOS) {
+    alert('📱 Pour installer sur iOS :\n\n1️⃣ Appuyez sur "Partager" ⬆️\n2️⃣ Sélectionnez "Sur l\'écran d\'accueil" 📲')
+  } else if (isAndroid) {
+    alert('📱 Pour installer sur Android :\n\n1️⃣ Menu du navigateur ⋮\n2️⃣ "Installer l\'application" ou "Ajouter à l\'écran d\'accueil" 📲')
+  } else {
+    alert('📱 Pour installer :\n\nRecherchez "Installer l\'application" dans le menu de votre navigateur 🌐')
+  }
 }
+
 
 const handleAppPromoDismiss = () => {
   console.log('❌ Promo app fermée')
