@@ -39,13 +39,6 @@
 
       <!-- Menu items -->
       <div class="menu-section">
-        <div class="menu-item" @click="$router.push('/profile/personal-info')">
-          <span>Informations personnelles</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
-          </svg>
-        </div>
-
         <div class="menu-item" @click="$router.push('/orders')">
           <div class="menu-item-content">
             <span>Mes commandes</span>
@@ -67,13 +60,6 @@
 
         <div class="menu-item" @click="$router.push('/wishlist')">
           <span>Ma liste de souhaits</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <div class="menu-item" @click="$router.push('/profile/reviews')">
-          <span>Mes avis</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2"/>
           </svg>
@@ -176,15 +162,6 @@ onMounted(() => {
   }
 })
 
-// onMounted(() => {
-//   console.log('🔍 DEBUG PROFILE:')
-//   console.log('- authStore:', authStore)
-//   console.log('- authStore.user:', authStore.user)
-//   console.log('- authStore.isAuthenticated:', authStore.isAuthenticated)
-//   console.log('- authStore.token:', authStore.token)
-//   console.log('- localStorage user:', localStorage.getItem('user'))
-//   console.log('- localStorage token:', localStorage.getItem('token'))
-// })
 </script>
 
 <style scoped>

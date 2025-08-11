@@ -45,7 +45,7 @@ const fallbackImage = computed(() => {
 
 const isAnimating = ref(false)
 const justAdded = ref(false)
-const wishlistAnimating = ref(false)  // ✅ Nouveau
+const wishlistAnimating = ref(false)
 
 const handleAddToCart = async () => {
   if (props.product.available && !isAnimating.value) {
@@ -54,12 +54,12 @@ const handleAddToCart = async () => {
     try {
       await cartStore.addItem(props.product)
       
-      // Animation de succès
+      // Animation de succès (sans bounce)
       justAdded.value = true
       setTimeout(() => {
         justAdded.value = false
         isAnimating.value = false
-      }, 800)
+      }, 400)  // Délai inchangé, mais sans effet de bounce
       
     } catch (error) {
       console.error('Erreur ajout panier:', error)
@@ -67,7 +67,6 @@ const handleAddToCart = async () => {
     }
   }
 }
-
 
 const handleWishlist = async () => {
   if (wishlistAnimating.value) return
@@ -77,16 +76,14 @@ const handleWishlist = async () => {
   try {
     await wishlistStore.toggleWishlist(props.product.id)
     
-    // Petit délai pour l'animation
     setTimeout(() => {
       wishlistAnimating.value = false
-    }, 300)
+    }, 200)  // Délai inchangé, mais sans effet de bounce
     
   } catch (error) {
     console.error('Erreur wishlist:', error)
     wishlistAnimating.value = false
     
-    // Afficher une notification d'erreur (optionnel)
     if (error.message.includes('connecté')) {
       alert('Vous devez être connecté pour ajouter à votre liste de souhaits')
     } else {
@@ -134,29 +131,27 @@ const handleImageError = () => {
       <!-- Overlay avec boutons -->
       <transition name="slide-up">
         <div class="product-overlay" v-show="true">
-          <!-- ✅ Bouton wishlist avec animation -->
-          <transition name="scale-bounce" mode="out-in">
-            <button 
-              :key="isInWishlist"
-              class="wishlist-btn"
-              @click.stop="handleWishlist"
-              :class="{ 
-                'active': isInWishlist,
-                'loading': wishlistAnimating
-              }"
-              :disabled="wishlistAnimating"
-            >
-              <transition name="fade" mode="out-in">
-                <i v-if="wishlistAnimating" key="loading" class="ri-loader-4-line spinning"></i>
-                <i v-else-if="isInWishlist" key="filled" class="ri-heart-fill"></i>
-                <i v-else key="empty" class="ri-heart-line"></i>
-              </transition>
-            </button>
-          </transition>
+          <!-- ✅ Bouton wishlist (sans animation de bounce) -->
+          <button 
+            :key="isInWishlist"
+            class="wishlist-btn"
+            @click.stop="handleWishlist"
+            :class="{ 
+              'active': isInWishlist,
+              'loading': wishlistAnimating
+            }"
+            :disabled="wishlistAnimating"
+          >
+            <transition name="fade" mode="out-in">
+              <i v-if="wishlistAnimating" key="loading" class="ri-loader-4-line spinning"></i>
+              <i v-else-if="isInWishlist" key="filled" class="ri-heart-fill"></i>
+              <i v-else key="empty" class="ri-heart-line"></i>
+            </transition>
+          </button>
           
-          <!-- Badge avec floating -->
-          <transition name="bounce">
-            <div v-if="product.badge" class="product-badge floating">
+          <!-- Badge sans bounce -->
+          <transition name="fade">
+            <div v-if="product.badge" class="product-badge">
               {{ product.badge }}
             </div>
           </transition>
@@ -165,41 +160,32 @@ const handleImageError = () => {
     </div>
     
     <!-- ✅ Contenu du produit -->
-     <div class="product-info">
-      <transition name="slide-up">
-        <h3 class="product-name">{{ product.name }}</h3>
-      </transition>
+    <div class="product-info">
+      <h3 class="product-name">{{ product.name }}</h3>
       
-      <transition name="slide-up" :style="{ 'transition-delay': '0.1s' }">
-        <p class="product-description">{{ product.description }}</p>
-      </transition>
+      <p class="product-description">{{ product.description }}</p>
 
       <div class="product-footer">
-        <transition name="slide-up" :style="{ 'transition-delay': '0.2s' }">
-          <span class="product-price">
-            {{ Number(product.price).toFixed(2) }}€
-          </span>
-        </transition>
+        <span class="product-price">
+          {{ Number(product.price).toFixed(2) }}€
+        </span>
         
-        <!-- Bouton Add avec animation -->
-        <transition name="scale-bounce" mode="out-in">
-          <button 
-            class="add-btn"
-            @click.stop="handleAddToCart"
-            :disabled="!product.available || isAnimating"
-            :class="{ 
-              'bounce': justAdded,
-              'loading-spinner': isAnimating
-            }"
-          >
-            <transition name="fade" mode="out-in">
-              <i v-if="isAnimating" key="loading" class="ri-loader-4-line spinning"></i>
-              <i v-else-if="justAdded" key="success" class="ri-check-line"></i>
-              <span v-else-if="isInCart" key="count" class="cart-count">{{ cartQuantity }}</span>
-              <i v-else key="add" class="ri-add-line"></i>
-            </transition>
-          </button>
-        </transition>
+        <!-- Bouton Add (sans animation de bounce) -->
+        <button 
+          class="add-btn"
+          @click.stop="handleAddToCart"
+          :disabled="!product.available || isAnimating"
+          :class="{ 
+            'loading-spinner': isAnimating
+          }"
+        >
+          <transition name="fade" mode="out-in">
+            <i v-if="isAnimating" key="loading" class="ri-loader-4-line spinning"></i>
+            <i v-else-if="justAdded" key="success" class="ri-check-line"></i>
+            <span v-else-if="isInCart" key="count" class="cart-count">{{ cartQuantity }}</span>
+            <i v-else key="add" class="ri-add-line"></i>
+          </transition>
+        </button>
       </div>
     </div>
   </article>
@@ -211,7 +197,7 @@ const handleImageError = () => {
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;  /* Transition simple, sans bounce */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -220,7 +206,7 @@ const handleImageError = () => {
 }
 
 .product-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px);  /* Déplacement simple, sans scale ou bounce */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -248,7 +234,7 @@ const handleImageError = () => {
   pointer-events: none;
 }
 
-/* ✅ Styles wishlist (renommés depuis favorite) */
+/* ✅ Styles wishlist sans bounce */
 .wishlist-btn {
   background: rgba(255, 255, 255, 0.9);
   border: none;
@@ -261,7 +247,7 @@ const handleImageError = () => {
   cursor: pointer;
   font-size: 1rem;
   color: #6b7280;
-  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: all 0.1s ease;  /* Transition simple, sans cubic-bezier pour bounce */
   backdrop-filter: blur(4px);
   pointer-events: all;
   position: relative;
@@ -269,7 +255,7 @@ const handleImageError = () => {
 
 .wishlist-btn:hover:not(:disabled) {
   background: white;
-  transform: scale(1.1);
+  /* Supprimé : transform: scale(1.1); pour enlever le bounce */
 }
 
 .wishlist-btn:disabled {
@@ -280,16 +266,16 @@ const handleImageError = () => {
 .wishlist-btn.active {
   color: #ef4444;
   background: rgba(255, 255, 255, 0.95);
-  animation: heartBeat 0.3s ease;
+  /* Supprimé : animation: heartBeat 0.15s ease; pour enlever le bounce */
 }
 
 .wishlist-btn.loading {
   pointer-events: none;
 }
 
-/* ✅ Animation pour le loader */
+/* ✅ Animation pour le loader, rendue plus rapide */
 .spinning {
-  animation: spin 1s linear infinite;
+  animation: spin 0.5s linear infinite;  /* ✅ Changé : Anciennement 1s, maintenant 0.5s pour plus de rapidité */
 }
 
 .product-badge {
@@ -380,98 +366,24 @@ const handleImageError = () => {
   cursor: pointer;
   color: white;
   font-size: 1rem;
-  transition: all 0.2s ease;
   position: relative;
   min-width: 32px;
+  transition: all 0.15s ease;  /* Transition simple, sans bounce */
 }
 
 .add-btn:hover:not(:disabled) {
   background: #3730a3;
-  transform: scale(1.1);
+  /* Supprimé : transform: scale(1.1); pour enlever le bounce */
 }
 
 .add-btn:disabled {
   background: #d1d5db;
   cursor: not-allowed;
-  transform: none;
 }
 
-.cart-count {
-  font-size: 0.75rem;
-  font-weight: 600;
-  min-width: 16px;
-}
-
-.product-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-}
-
-.product-card.just-added {
-  animation: bounce 0.6s ease;
-  border-color: #10b981 !important;
-}
-
-.product-card.animating {
-  pointer-events: none;
-}
-
-.add-btn {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  position: relative;
-}
-
-.add-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-}
-
-.add-btn:disabled {
-  opacity: 0.7;
-}
-
-.product-badge {
-  animation-delay: 0.5s;
-}
-
-/* Responsive animations */
-@media (prefers-reduced-motion: reduce) {
-  .product-card,
-  .wishlist-btn,
-  .add-btn {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* ✅ Animations */
+/* ✅ Animations restantes */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-@keyframes heartBeat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-@keyframes bounce {
-  0%, 20%, 53%, 80%, 100% {
-    transform: translate3d(0, 0, 0);
-  }
-  40%, 43% {
-    transform: translate3d(0, -8px, 0);
-  }
-  70% {
-    transform: translate3d(0, -4px, 0);
-  }
-  90% {
-    transform: translate3d(0, -2px, 0);
-  }
 }
 </style>

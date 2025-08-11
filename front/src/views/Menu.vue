@@ -28,7 +28,6 @@
       :isOpen="isSearchOpen"
       :products="products"
       @close="closeSearch"
-      @selectProduct="handleProductSelect"
     />
 
     <!-- Filtres de catégories -->
@@ -116,6 +115,8 @@ const cartStore = useCartStore()
 const route = useRoute()
 const router = useRouter()
 const isSearchOpen = ref(false)
+
+const products = computed(() => productsStore.products)
 
 // État local
 const selectedCategory = ref('all')
