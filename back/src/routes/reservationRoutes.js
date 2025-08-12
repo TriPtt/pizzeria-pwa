@@ -1,7 +1,7 @@
-import express from 'express';
-import * as reservationController from '../controllers/reservationController.js';
-import authMiddleware from '../middlewares/authMiddleware.js';
-import authorizeRole from '../middlewares/authorizeRole.js';
+const express = require('express');
+const reservationController = require('../controllers/reservationController.js');
+const authMiddleware = require('../middlewares/authMiddleware.js');
+const authorizeRole = require('../middlewares/authorizeRole.js');
 
 const router = express.Router();
 
@@ -14,4 +14,4 @@ router.delete("/:id", authMiddleware, reservationController.cancelReservation);
 router.get("/check/availability", reservationController.checkAvailability);
 router.get("/slots/available", reservationController.getAvailableSlots);
 
-export default router;
+module.exports = router;
