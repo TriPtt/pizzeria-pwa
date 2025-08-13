@@ -1,5 +1,5 @@
 const express = require('express');
-const { createCheckoutSession } = require('../controllers/stripeController.js');
+const { createCheckoutSession } = require('../controllers/stripeController');
 
 const router = express.Router();
 
