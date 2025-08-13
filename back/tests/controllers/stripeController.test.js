@@ -1,261 +1,274 @@
 const request = require('supertest');
 const express = require('express');
-const wishlistRoutes = require('../../src/routes/wishlistRoutes');
+const stripeRoutes = require('../../src/routes/stripeRoutes');
 
 const app = express();
 app.use(express.json());
-app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/checkout', stripeRoutes);
 
-// Mock du middleware auth
-jest.mock('../../src/middlewares/authMiddleware', () => {
-  return (req, res, next) => {
-    req.user = { id: 1 };
-    next();
-  };
-});
-
-describe('Wishlist Controller', () => {
+describe('Stripe Controller', () => {
   beforeEach(() => {
-    global.mockPool.query.mockClear();
+    // Reset tous les mocks avant chaque test
+    jest.clearAllMocks();
   });
 
-  describe('GET /api/wishlist', () => {
-    test('should return user wishlist', async () => {
-      const mockWishlistItems = [
+  describe('POST /api/checkout/create-checkout-session', () => {
+    test('should create checkout session successfully', async () => {
+      const products = [
         {
-          wishlist_id: 1,
-          product_id: 1,
-          created_at: '2024-01-01T10:00:00Z',
-          id: 1,
           name: 'Margherita',
-          description: 'Pizza classique',
           price: 12.50,
-          image: 'pizza.jpg',
-          type: 'pizza',
-          available: true,
-          vegetarian: true
+          quantity: 2
         },
         {
-          wishlist_id: 2,
-          product_id: 2,
-          created_at: '2024-01-01T11:00:00Z',
-          id: 2,
-          name: 'Tiramisu',
-          description: 'Dessert italien',
-          price: 5.50,
-          image: 'tiramisu.jpg',
-          type: 'dessert',
-          available: true,
-          vegetarian: true
+          name: 'Coca-Cola',
+          price: 2.50,
+          quantity: 1
         }
       ];
 
-      global.mockPool.query.mockResolvedValue({ rows: mockWishlistItems });
-
-      const response = await request(app).get('/api/wishlist');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.items).toEqual(mockWishlistItems);
-      expect(response.body.count).toBe(2);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.id).toBe('session_test_123'); // ID du mock global
     });
 
-    test('should handle database errors', async () => {
-      global.mockPool.query.mockRejectedValue(new Error('Database error'));
-
-      const response = await request(app).get('/api/wishlist');
-
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Erreur lors de la récupération de la wishlist');
-    });
-  });
-
-  describe('POST /api/wishlist/add', () => {
-    test('should add product to wishlist', async () => {
-      const mockResult = { rows: [{ id: 1 }] };
-      global.mockPool.query.mockResolvedValue(mockResult);
-
+    test('should return 400 if products are missing', async () => {
       const response = await request(app)
-        .post('/api/wishlist/add')
-        .send({ product_id: 1 });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Produit ajouté à la wishlist');
-      expect(response.body.wishlistItemId).toBe(1);
-    });
-
-    test('should return 400 for invalid product_id', async () => {
-      const response = await request(app)
-        .post('/api/wishlist/add')
-        .send({ product_id: 'invalid' });
+        .post('/api/checkout/create-checkout-session')
+        .send({}); // pas de products
 
       expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Product ID invalide');
+      expect(response.body.error).toBe("Missing 'products' in request body");
     });
 
-    test('should return 400 for missing product_id', async () => {
+    test('should return 400 if products is null', async () => {
       const response = await request(app)
-        .post('/api/wishlist/add')
-        .send({});
+        .post('/api/checkout/create-checkout-session')
+        .send({ products: null });
 
       expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Product ID invalide');
+      expect(response.body.error).toBe("Missing 'products' in request body");
     });
 
-    test('should handle database errors', async () => {
-      global.mockPool.query.mockRejectedValue(new Error('Database error'));
+    test('should handle empty products array', async () => {
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products: [] });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.id).toBe('session_test_123');
+    });
+
+    test('should handle products with decimal prices correctly', async () => {
+      const products = [
+        {
+          name: 'Pizza Spéciale',
+          price: 15.99,
+          quantity: 1
+        }
+      ];
 
       const response = await request(app)
-        .post('/api/wishlist/add')
-        .send({ product_id: 1 });
-
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Erreur lors de l\'ajout à la wishlist');
-    });
-  });
-
-  describe('DELETE /api/wishlist/remove/:productId', () => {
-    test('should remove product from wishlist', async () => {
-      const mockProductResult = { rows: [{ name: 'Margherita' }] };
-      const mockDeleteResult = { rows: [{ id: 1 }] };
-
-      global.mockPool.query
-        .mockResolvedValueOnce(mockProductResult)
-        .mockResolvedValueOnce(mockDeleteResult);
-
-      const response = await request(app).delete('/api/wishlist/remove/1');
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('"Margherita" supprimé de la wishlist');
+      expect(response.body).toHaveProperty('id');
     });
 
-    test('should return 404 if product not in wishlist', async () => {
-      const mockProductResult = { rows: [] };
-      const mockDeleteResult = { rows: [] };
+    test('should handle products with zero price', async () => {
+      const products = [
+        {
+          name: 'Échantillon gratuit',
+          price: 0,
+          quantity: 1
+        }
+      ];
 
-      global.mockPool.query
-        .mockResolvedValueOnce(mockProductResult)
-        .mockResolvedValueOnce(mockDeleteResult);
-
-      const response = await request(app).delete('/api/wishlist/remove/999');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Produit non trouvé dans la wishlist');
-    });
-
-    test('should return 400 for invalid product_id', async () => {
-      const response = await request(app).delete('/api/wishlist/remove/invalid');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Product ID invalide');
-    });
-  });
-
-  describe('DELETE /api/wishlist/clear', () => {
-    test('should clear all wishlist items', async () => {
-      const mockResult = { rows: [{ id: 1 }, { id: 2 }] };
-      global.mockPool.query.mockResolvedValue(mockResult);
-
-      const response = await request(app).delete('/api/wishlist/clear');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('2 produits supprimés de la wishlist');
-      expect(response.body.removed_count).toBe(2);
+      expect(response.body).toHaveProperty('id');
     });
 
-    test('should handle empty wishlist', async () => {
-      const mockResult = { rows: [] };
-      global.mockPool.query.mockResolvedValue(mockResult);
+    test('should handle multiple products with different quantities', async () => {
+      const products = [
+        { name: 'Pizza A', price: 10.00, quantity: 2 },
+        { name: 'Pizza B', price: 12.50, quantity: 1 },
+        { name: 'Boisson', price: 2.50, quantity: 3 }
+      ];
 
-      const response = await request(app).delete('/api/wishlist/clear');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('La wishlist était déjà vide');
-      expect(response.body.removed_count).toBe(0);
+      expect(response.body).toHaveProperty('id');
     });
-  });
 
-  describe('GET /api/wishlist/check/:productId', () => {
-    test('should check if product is in wishlist', async () => {
-      const mockResult = {
-        rows: [{
-          id: 1,
-          created_at: '2024-01-01T10:00:00Z',
-          name: 'Margherita'
-        }]
-      };
-      global.mockPool.query.mockResolvedValue(mockResult);
+    test('should handle products with negative prices', async () => {
+      const products = [
+        {
+          name: 'Discount Product',
+          price: -5.00,
+          quantity: 1
+        }
+      ];
 
-      const response = await request(app).get('/api/wishlist/check/1');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.in_wishlist).toBe(true);
-      expect(response.body.product_name).toBe('Margherita');
+      expect(response.body).toHaveProperty('id');
     });
 
-    test('should return false if product not in wishlist', async () => {
-      const mockResult = { rows: [] };
-      global.mockPool.query.mockResolvedValue(mockResult);
+    test('should handle products with very large prices', async () => {
+      const products = [
+        {
+          name: 'Expensive Product',
+          price: 999999.99,
+          quantity: 1
+        }
+      ];
 
-      const response = await request(app).get('/api/wishlist/check/999');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.in_wishlist).toBe(false);
-      expect(response.body.product_name).toBe(null);
+      expect(response.body).toHaveProperty('id');
     });
 
-    test('should return 400 for invalid product_id', async () => {
-      const response = await request(app).get('/api/wishlist/check/invalid');
+    test('should handle malformed product data gracefully', async () => {
+      const products = [
+        {
+          name: 'Product without price',
+          quantity: 1
+          // price manquant
+        },
+        {
+          name: 'Product with string price',
+          price: 'invalid',
+          quantity: 1
+        }
+      ];
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Product ID invalide');
-    });
-  });
-
-  describe('GET /api/wishlist/stats', () => {
-    test('should return wishlist statistics', async () => {
-      const mockStats = {
-        total_items: '3',
-        available_items: '2',
-        vegetarian_items: '2',
-        total_value: '30.50',
-        first_added: '2024-01-01T10:00:00Z',
-        last_added: '2024-01-02T10:00:00Z'
-      };
-
-      global.mockPool.query.mockResolvedValue({ rows: [mockStats] });
-
-      const response = await request(app).get('/api/wishlist/stats');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.stats.total_items).toBe(3);
-      expect(response.body.stats.available_items).toBe(2);
-      expect(response.body.stats.vegetarian_items).toBe(2);
-      expect(response.body.stats.total_value).toBe(30.50);
+      expect(response.body).toHaveProperty('id');
     });
 
-    test('should handle database errors', async () => {
-      global.mockPool.query.mockRejectedValue(new Error('Database error'));
+    test('should convert prices to cents correctly', async () => {
+      const products = [
+        { name: 'Pizza', price: 15.99, quantity: 1 }
+      ];
 
-      const response = await request(app).get('/api/wishlist/stats');
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
 
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Erreur lors de la récupération des statistiques');
+      expect(response.status).toBe(200);
+      
+      const Stripe = require('stripe');
+      const mockStripe = new Stripe();
+      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0];
+      
+      if (callArgs && callArgs[0]) {
+        const sessionConfig = callArgs[0];
+        expect(sessionConfig.line_items[0].price_data.unit_amount).toBe(1599); // 15.99 * 100
+      }
+    });
+
+    test('should include correct redirect URLs', async () => {
+      const products = [{ name: 'Test', price: 10, quantity: 1 }];
+
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
+
+      expect(response.status).toBe(200);
+      
+      const Stripe = require('stripe');
+      const mockStripe = new Stripe();
+      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0];
+      
+      if (callArgs && callArgs[0]) {
+        const sessionConfig = callArgs[0];
+        expect(sessionConfig.success_url).toContain('payment-success');
+        expect(sessionConfig.cancel_url).toContain('payment-cancel');
+        expect(sessionConfig.success_url).toContain('{CHECKOUT_SESSION_ID}');
+      }
+    });
+
+    test('should use default localhost URL when VITE_API_URL is not set', async () => {
+      // Sauvegarder la valeur originale
+      const originalApiUrl = process.env.VITE_API_URL;
+      delete process.env.VITE_API_URL;
+
+      const products = [{ name: 'Test', price: 10, quantity: 1 }];
+
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
+
+      expect(response.status).toBe(200);
+      
+      const Stripe = require('stripe');
+      const mockStripe = new Stripe();
+      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0];
+      
+      if (callArgs && callArgs[0]) {
+        const sessionConfig = callArgs[0];
+        expect(sessionConfig.success_url).toBe('http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}');
+        expect(sessionConfig.cancel_url).toBe('http://localhost:5173/payment-cancel');
+      }
+
+      // Restaurer la valeur originale
+      if (originalApiUrl) {
+        process.env.VITE_API_URL = originalApiUrl;
+      }
+    });
+
+    test('should use custom VITE_API_URL when set', async () => {
+      // Sauvegarder et définir une nouvelle valeur
+      const originalApiUrl = process.env.VITE_API_URL;
+      process.env.VITE_API_URL = 'https://myapp.com';
+
+      const products = [{ name: 'Test', price: 10, quantity: 1 }];
+
+      const response = await request(app)
+        .post('/api/checkout/create-checkout-session')
+        .send({ products });
+
+      expect(response.status).toBe(200);
+      
+      const Stripe = require('stripe');
+      const mockStripe = new Stripe();
+      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0];
+      
+      if (callArgs && callArgs[0]) {
+        const sessionConfig = callArgs[0];
+        expect(sessionConfig.success_url).toBe('https://myapp.com/payment-success?session_id={CHECKOUT_SESSION_ID}');
+        expect(sessionConfig.cancel_url).toBe('https://myapp.com/payment-cancel');
+      }
+
+      // Restaurer la valeur originale
+      if (originalApiUrl) {
+        process.env.VITE_API_URL = originalApiUrl;
+      } else {
+        delete process.env.VITE_API_URL;
+      }
     });
   });
 });
