@@ -1,9 +1,9 @@
-import Stripe from 'stripe';
+const Stripe = require('stripe');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const api = process.env.VITE_API_URL || 'http://localhost:5173';
 
-export const createCheckoutSession = async (req, res) => {
+const createCheckoutSession = async (req, res) => {
   console.log("BODY REÇU :", req.body);
   const { products } = req.body;
   
@@ -36,4 +36,8 @@ export const createCheckoutSession = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Stripe session creation failed.' });
   }
+};
+
+module.exports = {
+  createCheckoutSession
 };
