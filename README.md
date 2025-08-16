@@ -8,39 +8,38 @@
 [![Security](https://img.shields.io/badge/security-OWASP-blue)](./docs/SECURITE_OWASP.md)
 [![Accessibility](https://img.shields.io/badge/accessibility-RGAA%204.1-green)](./docs/ACCESSIBILITE.md)
 
-## 📋 Table des matières
+## Table des matières
 
-- [À propos du projet](#-à-propos-du-projet)
-- [Fonctionnalités](#-fonctionnalités)
-- [Architecture technique](#-architecture-technique)
-- [Installation](#-installation)
-- [Utilisation](#-utilisation)
-- [Tests](#-tests)
-- [Déploiement](#-déploiement)
-- [Documentation](#-documentation)
-- [Contribution](#-contribution)
-- [Licence](#-licence)
+- [À propos du projet](#à-propos-du-projet)
+- [Fonctionnalités](#fonctionnalités)
+- [Architecture technique](#architecture-technique)
+- [Installation](#installation)
+- [Utilisation](#utilisation)
+- [Tests](#tests)
+- [Déploiement](#déploiement)
+- [Documentation](#documentation)
+- [Contact](#contact)
 
-## 🎯 À propos du projet
+## À propos du projet
 
 Cette application PWA modernise les services d'une pizzeria traditionnelle en offrant :
-- **Commande en ligne** avec personnalisation des pizzas
-- **Système de réservation** pour les tables
-- **Paiements sécurisés** via Stripe
-- **Interface responsive** adaptée mobile et desktop
-- **Mode hors-ligne** grâce aux Service Workers
+- Commande en ligne avec personnalisation des pizzas
+- Système de réservation pour les tables
+- Paiements sécurisés via Stripe
+- Interface responsive adaptée mobile et desktop
+- Mode hors-ligne grâce aux Service Workers
 
-### 🏆 Compétences validées (BLOC 02)
+### Compétences validées (BLOC 02)
 
-- ✅ **C2.1.1** - Environnements de déploiement et test
-- ✅ **C2.1.2** - Système d'intégration continue
-- ✅ **C2.2.1** - Prototype d'application logicielle
-- ✅ **C2.2.2** - Harnais de tests unitaires
-- ✅ **C2.2.3** - Développement sécurisé et accessible
-- ✅ **C2.2.4** - Déploiement progressif
-- ✅ **C2.3.1** - Cahier de recettes
-- ✅ **C2.3.2** - Plan de correction des bogues
-- ✅ **C2.4.1** - Documentation technique
+- **C2.1.1** - Environnements de déploiement et test
+- **C2.1.2** - Système d'intégration continue
+- **C2.2.1** - Prototype d'application logicielle
+- **C2.2.2** - Harnais de tests unitaires
+- **C2.2.3** - Développement sécurisé et accessible
+- **C2.2.4** - Déploiement progressif
+- **C2.3.1** - Cahier de recettes
+- **C2.3.2** - Plan de correction des bogues
+- **C2.4.1** - Documentation technique
 
 ## ✨ Fonctionnalités
 
@@ -59,7 +58,7 @@ Cette application PWA modernise les services d'une pizzeria traditionnelle en of
 - 🏠 **Réservations** : Planning des tables
 - 👥 **Gestion utilisateurs** : Rôles et permissions
 
-## 🏗️ Architecture technique
+## Architecture technique
 
 ### Stack technologique
 ```
@@ -73,39 +72,39 @@ Frontend (PWA)     Backend (API)      Base de données
 └─────────────┘   └──────────────┘   └──────────────┘
 ```
 
-### 📁 Structure du projet
+### Structure du projet
 ```
 pizzeria-pwa/
-├── 📁 front/                  # Application Vue.js PWA
-│   ├── 📁 src/
-│   │   ├── 📁 components/     # Composants réutilisables
-│   │   ├── 📁 views/          # Pages de l'application
-│   │   ├── 📁 stores/         # Gestion d'état Pinia
-│   │   ├── 📁 composables/    # Logique réutilisable
-│   │   └── 📄 main.js         # Point d'entrée
-│   ├── 📄 package.json
-│   └── 📄 vite.config.js      # Configuration Vite
-├── 📁 back/                   # API REST Node.js
-│   ├── 📁 src/
-│   │   ├── 📁 controllers/    # Logique métier
-│   │   ├── 📁 middlewares/    # Authentification, CORS
-│   │   ├── 📁 utils/          # Utilitaires (hash, JWT)
-│   │   └── 📄 app.js          # Configuration Express
-│   ├── 📁 tests/              # Tests unitaires Jest
-│   └── 📄 package.json
-├── 📁 docs/                   # Documentation technique
-│   ├── 📄 PROTOCOLE_DEPLOIEMENT_CONTINU.md
-│   ├── 📄 PROTOCOLE_INTEGRATION_CONTINUE.md
-│   ├── 📄 ARCHITECTURE_LOGICIELLE.md
-│   ├── 📄 SECURITE_OWASP.md
-│   ├── 📄 ACCESSIBILITE.md
-│   ├── 📄 CAHIER_RECETTES.md
-│   ├── 📄 PLAN_CORRECTION_BOGUES.md
-│   ├── 📄 MANUEL_DEPLOIEMENT.md
-│   ├── 📄 MANUEL_UTILISATION.md
-│   └── 📄 MANUEL_MISE_A_JOUR.md
-├── 📁 .github/workflows/      # CI/CD GitHub Actions
-└── 📄 README.md               # Ce fichier
+├── front/                     # Application Vue.js PWA
+│   ├── src/
+│   │   ├── components/        # Composants réutilisables
+│   │   ├── views/             # Pages de l'application
+│   │   ├── stores/            # Gestion d'état Pinia
+│   │   ├── composables/       # Logique réutilisable
+│   │   └── main.js            # Point d'entrée
+│   ├── package.json
+│   └── vite.config.js         # Configuration Vite
+├── back/                      # API REST Node.js
+│   ├── src/
+│   │   ├── controllers/       # Logique métier
+│   │   ├── middlewares/       # Authentification, CORS
+│   │   ├── utils/             # Utilitaires (hash, JWT)
+│   │   └── app.js             # Configuration Express
+│   ├── tests/                 # Tests unitaires Jest
+│   └── package.json
+├── docs/                      # Documentation technique
+│   ├── PROTOCOLE_DEPLOIEMENT_CONTINU.md
+│   ├── PROTOCOLE_INTEGRATION_CONTINUE.md
+│   ├── ARCHITECTURE_LOGICIELLE.md
+│   ├── SECURITE_OWASP.md
+│   ├── ACCESSIBILITE.md
+│   ├── CAHIER_RECETTES.md
+│   ├── PLAN_CORRECTION_BOGUES.md
+│   ├── MANUEL_DEPLOIEMENT.md
+│   ├── MANUEL_UTILISATION.md
+│   └── MANUEL_MISE_A_JOUR.md
+├── .github/workflows/         # CI/CD GitHub Actions
+└── README.md                  # Ce fichier
 ```
 
 ## 🚀 Installation
@@ -167,18 +166,14 @@ npm run dev  # Lance nodemon sur le port 5000
 #### Démarrer le frontend
 ```bash
 cd front
-npm run dev  # Lance Vite dev server sur le port 3000
+npm run dev  # Lance Vite dev server sur le port 5173
 ```
 
 #### Accès à l'application
-- **Frontend** : http://localhost:3000
+- **Frontend** : http://localhost:5173
 - **API Backend** : http://localhost:5000
 
-### Comptes de test
-- **Admin** : admin@lafavola.com / admin123
-- **Client** : client@test.com / client123
-
-## 🧪 Tests
+## Tests
 
 ### Tests Backend (Jest)
 ```bash
@@ -188,15 +183,7 @@ npm run test:watch         # Mode watch
 npm run test:coverage      # Rapport de couverture
 ```
 
-**Couverture actuelle :** 85% (branches: 70%, fonctions: 80%, lignes: 80%)
-
-### Tests Frontend (Vitest)
-```bash
-cd front
-npm test                    # Tests unitaires
-npm run test:ui            # Interface graphique
-npm run test:coverage      # Couverture
-```
+Couverture actuelle : 85% (branches: 70%, fonctions: 80%, lignes: 80%)
 
 ### Tests d'intégration
 Les tests E2E sont exécutés automatiquement dans la CI/CD via GitHub Actions.
@@ -241,8 +228,6 @@ STRIPE_SECRET_KEY=sk_live_...
 
 ### Manuels d'utilisation
 - 🚀 [Manuel de déploiement](./docs/MANUEL_DEPLOIEMENT.md)
-- 👥 [Manuel d'utilisation](./docs/MANUEL_UTILISATION.md)
-- 🔄 [Manuel de mise à jour](./docs/MANUEL_MISE_A_JOUR.md)
 
 ## 🔧 Technologies utilisées
 
@@ -294,7 +279,7 @@ Ce projet a été réalisé dans le cadre de la certification **RNCP39583 - Expe
 ## 📞 Contact
 
 **Tristan Petit**  
-📧 Email : tristan.petit@ynov.com  
+📧 Email : tristan.petit17@ynov.com  
 🎓 Certification : RNCP39583 - Expert en Développement Logiciel  
 🏫 École : YNOV Campus
 
@@ -308,7 +293,7 @@ Ce projet est réalisé à des fins pédagogiques dans le cadre de la certificat
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0.0 | 2024-12 | Version initiale avec toutes les fonctionnalités |
+| 1.0.0 | 2025-08 | Version initiale avec toutes les fonctionnalités |
 
 ---
 
