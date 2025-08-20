@@ -208,7 +208,7 @@ onMounted(() => {
 .cart-page {
   min-height: 100vh;
   background: #f5f5f5;
-  padding-bottom: 140px;
+  padding-bottom: 200px;
   overscroll-behavior: none; 
 }
 
@@ -417,7 +417,7 @@ onMounted(() => {
 /* Footer fixe */
 .cart-footer {
   position: fixed;
-  bottom: 0;
+  bottom: 80px;
   left: 0;
   right: 0;
   background: white;
