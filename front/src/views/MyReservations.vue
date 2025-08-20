@@ -1,6 +1,5 @@
 <template>
   <div class="my-reservations">
-    <!-- Header avec le même style que Profile -->
     <div class="reservations-header">
       <button @click="$router.go(-1)" class="back-btn">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -323,18 +322,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
-  justify-content: space-between;
 }
 
 .back-btn {
   background: none;
   border: none;
-  padding: 8px;
+  font-size: 18px;
   cursor: pointer;
-  color: #666;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-  flex-shrink: 0;
+  color: #333;
 }
 
 .back-btn:hover {
@@ -344,51 +339,23 @@ onMounted(() => {
 .reservations-header h1 {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
   margin: 0;
   flex: 1;
+  color: #333;
 }
-
 .new-reservation-btn {
-  background: #007bff;
+  background: none;
   border: none;
-  padding: 10px;
-  border-radius: 50%;
+  padding: 8px;
   cursor: pointer;
-  color: white;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
+  color: #007bff;
+  border-radius: 8px;
+  transition: background-color 0.2s;
   flex-shrink: 0;
 }
 
 .new-reservation-btn:hover {
-  background: #0056b3;
-  transform: scale(1.05);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.header h1 {
-  color: #2c3e50;
-  margin: 0;
-  font-size: 2rem;
-}
-
-/* Loading & Error States */
-.loading {
-  text-align: center;
-  padding: 4rem 2rem;
+  background: #f0f0f0;
 }
 
 .loading-state {
@@ -413,18 +380,6 @@ onMounted(() => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-.error-message {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #e74c3c;
-}
-
-.error-message i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  display: block;
 }
 
 /* Empty State */
@@ -497,11 +452,12 @@ onMounted(() => {
 /* Filtres */
 .filters {
   display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .filter-group {
@@ -517,33 +473,34 @@ onMounted(() => {
 }
 
 .filter-group select {
-  padding: 0.5rem;
+  padding: 8px 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
 }
 
 /* Grid des réservations */
 .reservations-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Carte de réservation */
 .reservation-card {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  position: relative;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: none; /* Enlever les bordures colorées */
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin: 1rem;
 }
 
 .reservation-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .reservation-card.upcoming {
@@ -666,6 +623,19 @@ onMounted(() => {
 .primary-btn {
   background: #007bff;
   color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+  background: #0056b3;
 }
 
 .btn-primary {
@@ -769,15 +739,6 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .my-reservations {
-    padding: 1rem;
-  }
-  
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
   
   .reservations-grid {
     grid-template-columns: 1fr;

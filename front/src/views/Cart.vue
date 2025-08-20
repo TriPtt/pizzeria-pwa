@@ -213,16 +213,17 @@ onMounted(() => {
 }
 
 .cart-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: white;
-  border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
   z-index: 100;
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
+
 
 .back-btn {
   background: none;
@@ -232,10 +233,16 @@ onMounted(() => {
   color: #333;
 }
 
+.back-btn:hover {
+  background: #f0f0f0;
+}
+
 .cart-header h1 {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
+  flex: 1;
+  color: #333;
 }
 /* Empty state */
 .empty-cart {

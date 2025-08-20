@@ -27,7 +27,7 @@
       <!-- Étape 1: Sélection date et nombre de personnes -->
       <div v-if="step === 1" class="step-card">
         <div class="step-header">
-          <h2>📅 Choisir la date et le nombre de personnes</h2>
+          <h2>Choisir la date et le nombre de personnes</h2>
           <p>Sélectionnez votre date et le nombre de convives</p>
         </div>
 
@@ -60,7 +60,7 @@
               >+</button>
             </div>
             <small class="help-text">
-              Maximum 8 personnes. Pour plus, contactez-nous au 📞 01.23.45.67.89
+              Maximum 8 personnes. Pour plus, contactez-nous au 07 44 52 57 77
             </small>
           </div>
         </div>
@@ -77,7 +77,7 @@
       <!-- Étape 2: Sélection du créneau -->
       <div v-if="step === 2" class="step-card">
         <div class="step-header">
-          <h2>🕐 Choisir un créneau</h2>
+          <h2>Choisir un créneau</h2>
           <div class="selection-summary">
             <p>{{ formatDateLong(selectedDate) }}</p>
             <p>{{ selectedGuests }} personne{{ selectedGuests > 1 ? 's' : '' }}</p>
@@ -119,30 +119,30 @@
       <!-- Étape 3: Confirmation -->
       <div v-if="step === 3" class="step-card">
         <div class="step-header">
-          <h2>✅ Confirmer la réservation</h2>
+          <h2>Confirmer la réservation</h2>
         </div>
 
         <div class="summary-section">
           <div class="summary-item">
-            <span class="label">📅 Date :</span>
+            <span class="label">Date :</span>
             <span class="value">{{ formatDateLong(selectedDate) }}</span>
           </div>
           <div class="summary-item">
-            <span class="label">🕐 Heure :</span>
+            <span class="label">Heure :</span>
             <span class="value">{{ selectedSlot?.time }}</span>
           </div>
           <div class="summary-item">
-            <span class="label">👥 Personnes :</span>
+            <span class="label">Personnes :</span>
             <span class="value">{{ selectedGuests }}</span>
           </div>
           <div class="summary-item">
-            <span class="label">⏱️ Durée :</span>
+            <span class="label">Durée :</span>
             <span class="value">1h30</span>
           </div>
         </div>
 
         <div class="info-section">
-          <h4>📋 Informations importantes</h4>
+          <h4>Informations importantes</h4>
           <ul>
             <li>La table sera libérée automatiquement après 1h30</li>
             <li>Modification/annulation possible jusqu'à 2h avant</li>
@@ -280,23 +280,16 @@ const confirmReservation = async () => {
   loading.value = true
   
   try {
-    console.log('🎯 Selected slot details:', selectedSlot.value)
-    console.log('👥 Selected guests:', selectedGuests.value)
-    
-    // ✅ ASSURE-TOI QUE LES DONNÉES SONT CORRECTES
     const reservationData = {
       reservation_date: selectedSlot.value.datetime, // ou selectedSlot.value.date + 'T' + selectedSlot.value.time
       number_of_guests: parseInt(selectedGuests.value), // Force en nombre
     }
-    
-    console.log('📤 Sending reservation data:', reservationData)
     
     await reservationStore.createReservation(reservationData)
     
     step.value = 4
     
   } catch (error) {
-    console.error('❌ Erreur lors de la confirmation:', error)
     alert(error.message || 'Erreur lors de la réservation')
   } finally {
     loading.value = false
@@ -328,7 +321,6 @@ const goToMyReservations = () => {
   background: #f8f9fa;
 }
 
-/* Header - même style que Profil */
 .reservations-header {
   position: sticky;
   top: 0;
@@ -390,7 +382,6 @@ const goToMyReservations = () => {
   }
 }
 
-/* Step card - même style que user-card */
 .step-card {
   background: white;
   border-radius: 12px;
@@ -756,7 +747,6 @@ const goToMyReservations = () => {
   gap: 12px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .reservations-content {
     padding: 16px 12px;
