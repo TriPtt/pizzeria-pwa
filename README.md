@@ -18,7 +18,6 @@
 - [Tests](#tests)
 - [Déploiement](#déploiement)
 - [Documentation](#documentation)
-- [Contact](#contact)
 
 ## À propos du projet
 
@@ -41,7 +40,7 @@ Cette application PWA modernise les services d'une pizzeria traditionnelle en of
 - **C2.3.2** - Plan de correction des bogues
 - **C2.4.1** - Documentation technique
 
-## ✨ Fonctionnalités
+## Fonctionnalités
 
 ### 👥 Utilisateurs
 - 🔐 **Authentification** : Inscription, connexion, gestion de profil
@@ -107,7 +106,7 @@ pizzeria-pwa/
 └── README.md                  # Ce fichier
 ```
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 - **Node.js** v20+ et npm
@@ -153,7 +152,7 @@ cp .env.example .env
 # VITE_API_URL=http://localhost:5000
 ```
 
-## 💻 Utilisation
+## Utilisation
 
 ### Développement local
 
@@ -188,7 +187,7 @@ Couverture actuelle : 85% (branches: 70%, fonctions: 80%, lignes: 80%)
 ### Tests d'intégration
 Les tests E2E sont exécutés automatiquement dans la CI/CD via GitHub Actions.
 
-## 🚀 Déploiement
+## Déploiement
 
 ### Automatique (GitHub Actions)
 Le déploiement se déclenche automatiquement sur :
@@ -215,19 +214,19 @@ JWT_SECRET=secure_random_key
 STRIPE_SECRET_KEY=sk_live_...
 ```
 
-## 📚 Documentation
+## Documentation
 
 ### Documentation technique complète
-- 📋 [Protocole de déploiement continu](./docs/PROTOCOLE_DEPLOIEMENT_CONTINU.md)
-- 🔄 [Protocole d'intégration continue](./docs/PROTOCOLE_INTEGRATION_CONTINUE.md)
-- 🏗️ [Architecture logicielle](./docs/ARCHITECTURE_LOGICIELLE.md)
-- 🔒 [Mesures de sécurité OWASP](./docs/SECURITE_OWASP.md)
-- ♿ [Accessibilité RGAA](./docs/ACCESSIBILITE.md)
-- ✅ [Cahier de recettes](./docs/CAHIER_RECETTES.md)
-- 🐛 [Plan de correction des bogues](./docs/PLAN_CORRECTION_BOGUES.md)
+- [Protocole de déploiement continu](./docs/PROTOCOLE_DEPLOIEMENT_CONTINU.md)
+- [Protocole d'intégration continue](./docs/PROTOCOLE_INTEGRATION_CONTINUE.md)
+- [Architecture logicielle](./docs/ARCHITECTURE_LOGICIELLE.md)
+- [Mesures de sécurité OWASP](./docs/SECURITE_OWASP.md)
+- [Accessibilité RGAA](./docs/ACCESSIBILITE.md)
+- [Cahier de recettes](./docs/CAHIER_RECETTES.md)
+- [Plan de correction des bogues](./docs/PLAN_CORRECTION_BOGUES.md)
 
 ### Manuels d'utilisation
-- 🚀 [Manuel de déploiement](./docs/MANUEL_DEPLOIEMENT.md)
+- [Manuel de déploiement](./docs/MANUEL_DEPLOIEMENT.md)
 
 ## 🔧 Technologies utilisées
 
@@ -258,7 +257,7 @@ STRIPE_SECRET_KEY=sk_live_...
 - **ESLint** - Linting JavaScript
 - **npm audit** - Audit de sécurité
 
-## 📊 Métriques de qualité
+## Métriques de qualité
 
 - ✅ **Tests** : 85% de couverture
 - ✅ **Sécurité** : OWASP Top 10 couvert
@@ -266,7 +265,7 @@ STRIPE_SECRET_KEY=sk_live_...
 - ✅ **Performance** : Lighthouse Score > 90
 - ✅ **PWA** : Progressive Web App optimisée
 
-## 🤝 Contribution
+## Contribution
 
 Ce projet a été réalisé dans le cadre de la certification **RNCP39583 - Expert en Développement Logiciel**.
 
@@ -274,27 +273,14 @@ Ce projet a été réalisé dans le cadre de la certification **RNCP39583 - Expe
 - **Code style** : ESLint + Prettier
 - **Commits** : Conventional Commits
 - **Branches** : GitFlow (main/develop/feature/*)
-- **Tests** : Couverture minimale 80%
-
-## 📞 Contact
-
-**Tristan Petit**  
-📧 Email : tristan.petit17@ynov.com  
-🎓 Certification : RNCP39583 - Expert en Développement Logiciel  
-🏫 École : YNOV Campus
-
-## 📄 Licence
-
-Ce projet est réalisé à des fins pédagogiques dans le cadre de la certification RNCP39583.
+- **Tests** : Couverture minimale du back 80%
 
 ---
 
-## 🏷️ Versions
+## Versions
 
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0.0 | 2025-08 | Version initiale avec toutes les fonctionnalités |
 
 ---
-
-**🍕 Bon appétit avec LA FAVOLA ! 🇮🇹**
