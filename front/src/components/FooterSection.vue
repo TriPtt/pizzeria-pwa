@@ -18,7 +18,7 @@
       <div class="footer-content" v-show="isExpanded">
         <div class="footer-grid">
           <div class="footer-col">
-            <h4 class="footer-title">🍕 LA FAVOLA</h4>
+            <h4 class="footer-title">LA FAVOLA</h4>
             <p class="footer-description">
               Votre pizzeria authentique depuis {{ currentYear - startYear }} ans. 
               Des ingrédients frais, des recettes italiennes traditionnelles.
@@ -37,7 +37,7 @@
           </div>
           
           <div class="footer-col">
-            <h4 class="footer-title">📍 Adresse</h4>
+            <h4 class="footer-title">Adresse</h4>
             <div class="contact-info">
               <div class="contact-item">
                 <i class="ri-map-pin-line"></i>
@@ -55,7 +55,7 @@
           </div>
           
           <div class="footer-col">
-            <h4 class="footer-title">🕒 Horaires</h4>
+            <h4 class="footer-title">Horaires</h4>
             <div class="hours-list">
               <div 
                 v-for="(hours, day) in openingHours" 
@@ -70,7 +70,7 @@
           </div>
           
           <div class="footer-col">
-            <h4 class="footer-title">🔗 Liens</h4>
+            <h4 class="footer-title">Liens</h4>
             <nav class="footer-nav">
               <a href="#" class="footer-link">Mentions légales</a>
               <a href="#" class="footer-link">CGV</a>
@@ -84,7 +84,6 @@
         <div class="footer-bottom">
           <p class="copyright">
             © {{ currentYear }} LA FAVOLA. Tous droits réservés. 
-            <span class="made-with">Fait avec ❤️ à {{ city }}</span>
           </p>
         </div>
       </div>
@@ -370,11 +369,6 @@ const isToday = (day) => {
   font-size: 0.85rem;
   margin: 0;
   line-height: 1.6;
-}
-
-.made-with {
-  display: block;
-  margin-top: 0.25rem;
 }
 
 /* Responsive */

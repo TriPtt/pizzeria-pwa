@@ -75,17 +75,4 @@ html, body {
   transition: padding-bottom 0.3s ease;
 }
 
-/* 🎯 Quand la bottom nav est présente */
-body.has-bottom-nav #app {
-  padding-bottom: 90px;
-}
-
-/* Pour être sûr que ça marche sur toutes les pages */
-body.has-bottom-nav .page-container,
-body.has-bottom-nav .menu-page,
-body.has-bottom-nav .home-page,
-body.has-bottom-nav .profile-page,
-body.has-bottom-nav .cart-page {
-  margin-bottom: 20px; /* Marge supplémentaire si besoin */
-}
 </style>
