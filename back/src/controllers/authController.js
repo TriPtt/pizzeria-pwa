@@ -39,6 +39,7 @@ const register = async (req, res) => {
 
     return res.status(201).json({
       message: 'Inscription réussie',
+      token,
       user: result.rows[0],
     });
   } catch (err) {

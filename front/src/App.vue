@@ -10,7 +10,7 @@
     
     <BottomNavigation 
       :cart-count="overlayStore.cartCount"
-      :hide-on-scroll="true"
+      :hide-on-scroll="false"
       @tab-change="handleTabChange"
       v-if="showBottomNav"
     />
@@ -38,7 +38,8 @@ const overlayStore = useOverlayStore()
 
 const showBottomNav = computed(() => {
   return route.name === 'home' || route.name === 'menu' || 
-         route.name === 'profile' || route.name === 'reservations'
+         route.name === 'profile' || route.name === 'reservations' ||
+         route.name === 'cart'
 })
 
 // 🎯 Ajout/suppression de classe CSS sur le body
