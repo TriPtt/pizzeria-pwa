@@ -37,6 +37,7 @@
 ### Added
 - **Database:** Ajout du script pour setup la database à l'aide de la commande npm run setup
 - **Account:** Possibilité de supprimer son compte
+- **Contact:** Page ajoutée
 
 ### Enhanced
 - **Accessibility:** Score accéssibilité Lighthouse > 90
