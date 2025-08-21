@@ -156,9 +156,9 @@ BEGIN
     SELECT COUNT(*) INTO ingredient_count FROM ingredients WHERE type = 'base';
     SELECT COUNT(*) INTO supplement_count FROM ingredients WHERE type = 'supplement';
     
-    RAISE NOTICE '✅ SEED TERMINÉ !';
-    RAISE NOTICE '🍕 Pizzas: %', pizza_count;
-    RAISE NOTICE '🧄 Ingrédients de base: %', ingredient_count;
-    RAISE NOTICE '🍄 Suppléments (tous à 1€): %', supplement_count;
-    RAISE NOTICE '🔗 Relations créées avec succès !';
+    RAISE NOTICE 'SEED TERMINÉ !';
+    RAISE NOTICE 'Pizzas: %', pizza_count;
+    RAISE NOTICE 'Ingrédients de base: %', ingredient_count;
+    RAISE NOTICE 'Suppléments (tous à 1€): %', supplement_count;
+    RAISE NOTICE 'Relations créées avec succès !';
 END $$;

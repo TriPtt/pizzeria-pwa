@@ -8,12 +8,6 @@
         </svg>
       </button>
       <h1>Réservation</h1>
-      <button @click="showMyReservations" class="my-reservations-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2V5a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="2"/>
-          <path d="m9 11 3 3 8-8" stroke="currentColor" stroke-width="2"/>
-        </svg>
-      </button>
     </div>
 
     <!-- Loading state -->
@@ -330,7 +324,7 @@ const goToMyReservations = () => {
   padding: 16px 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
 }
 
 .reservations-header h1 {
@@ -340,7 +334,7 @@ const goToMyReservations = () => {
   margin: 0;
 }
 
-.back-btn, .my-reservations-btn {
+.back-btn {
   background: none;
   border: none;
   padding: 8px;
@@ -350,7 +344,7 @@ const goToMyReservations = () => {
   transition: background-color 0.2s;
 }
 
-.back-btn:hover, .my-reservations-btn:hover {
+.back-btn:hover {
   background: #f0f0f0;
 }
 

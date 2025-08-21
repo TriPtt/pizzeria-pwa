@@ -1,39 +1,16 @@
 <template>
   <div class="wishlist-page">
-    <!-- Header -->
+    <!-- Header identique aux autres pages (panier, commande) -->
     <div class="wishlist-header">
       <button @click="$router.go(-1)" class="back-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="2"/>
         </svg>
       </button>
-      
-      <h1 class="page-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
-                fill="currentColor"/>
-        </svg>
-        Ma Liste de Souhaits
-      </h1>
-      
-      <div class="header-actions">
-        <span class="item-count">{{ wishlistStore.itemCount }} article{{ wishlistStore.itemCount > 1 ? 's' : '' }}</span>
-        
-        <button 
-          v-if="!wishlistStore.isEmpty" 
-          @click="clearAllWishlist"
-          :disabled="wishlistStore.isLoading"
-          class="clear-btn"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" 
-                  stroke="currentColor" stroke-width="2"/>
-          </svg>
-          Tout vider
-        </button>
-      </div>
+      <h1>Ma Liste de Souhaits</h1>
     </div>
 
+    <!-- Contenu scrollable -->
     <div class="wishlist-content">
       <!-- Loading State -->
       <div v-if="wishlistStore.isLoading && wishlistStore.isEmpty" class="loading-state">
@@ -84,11 +61,18 @@
               @error="$event.target.src = '/images/placeholder.jpg'"
             />
             
-            <WishlistButton 
-              :productId="item.id"
-              size="small"
+            <!-- Bouton de suppression individuel -->
+            <button 
+              @click="removeFromWishlist(item.id)"
+              :disabled="isRemoving"
               class="remove-btn"
-            />
+              title="Retirer de la liste de souhaits"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
             
             <div v-if="!item.available" class="status-badge out-of-stock">
               Rupture de stock
@@ -115,80 +99,47 @@
                 <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13H17Z" 
                       stroke="currentColor" stroke-width="2"/>
               </svg>
-              {{ !item.available ? 'Indisponible' : 'Ajouter au panier' }}
+              {{ !item.available ? 'Indisponible' : isAddingToCart ? 'Ajout...' : 'Ajouter au panier' }}
             </button>
           </div>
-
-          <div class="added-date">
-            Ajouté le {{ formatDate(item.created_at) }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div v-if="!wishlistStore.isEmpty" class="wishlist-stats">
-        <div class="stats-item">
-          <span class="stats-number">{{ wishlistStore.itemCount }}</span>
-          <span class="stats-label">Articles sauvés</span>
-        </div>
-        <div class="stats-item">
-          <span class="stats-number">{{ availableItemsCount }}</span>
-          <span class="stats-label">Disponibles</span>
-        </div>
-        <div class="stats-item">
-          <span class="stats-number">{{ totalValue.toFixed(2) }}€</span>
-          <span class="stats-label">Valeur totale</span>
         </div>
       </div>
     </div>
 
-    <!-- Floating Refresh Button -->
-    <button 
-      v-if="!wishlistStore.isEmpty"
-      @click="refreshWishlist"
-      :disabled="wishlistStore.isLoading"
-      class="refresh-btn"
-      title="Actualiser la liste"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M1 4V10H7" stroke="currentColor" stroke-width="2"/>
-        <path d="M23 20V14H17" stroke="currentColor" stroke-width="2"/>
-        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" 
-              stroke="currentColor" stroke-width="2"/>
-      </svg>
-    </button>
+    <!-- Actions flottantes en bas -->
+    <div v-if="!wishlistStore.isEmpty" class="floating-actions">
+      <button 
+        @click="clearAllWishlist"
+        :disabled="wishlistStore.isLoading"
+        class="clear-all-btn"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" 
+                stroke="currentColor" stroke-width="2"/>
+        </svg>
+        Vider la liste ({{ wishlistStore.itemCount }})
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useCartStore } from '../stores/cartStore'
-import WishlistButton from '../components/WishlistButton.vue'
+import { useNotificationStore } from '../stores/notificationStore'
 
+const router = useRouter()
 const wishlistStore = useWishlistStore()
 const cartStore = useCartStore()
+const notificationStore = useNotificationStore()
+
+// States
 const isAddingToCart = ref(false)
+const isRemoving = ref(false)
 
-// Computed properties
-const availableItemsCount = computed(() => {
-  return wishlistStore.items.filter(item => item.available).length
-})
-
-const totalValue = computed(() => {
-  return wishlistStore.items.reduce((sum, item) => sum + parseFloat(item.price), 0)
-})
-
-// Methods
-const formatDate = (dateString) => {
-  if (!dateString) return 'Date inconnue'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long', 
-    year: 'numeric'
-  })
-}
-
+// Méthodes
 const addToCart = async (item) => {
   if (!item.available || isAddingToCart.value) return
   
@@ -208,17 +159,27 @@ const addToCart = async (item) => {
     
     await cartStore.addItem(cartItem)
     
-    // Message de succès (tu peux utiliser une notification)
-    console.log(`${item.name} ajouté au panier !`)
-    
-    // Optionnel: retirer automatiquement de la wishlist
-    // await wishlistStore.removeFromWishlist(item.id)
+    // ✅ Notification d'ajout au panier
+    notificationStore.addNotification(`${item.name} ajouté au panier !`, 'success')
     
   } catch (error) {
     console.error('Erreur lors de l\'ajout au panier:', error)
-    alert('Erreur lors de l\'ajout au panier')
+    notificationStore.addNotification('Erreur lors de l\'ajout au panier', 'error')
   } finally {
     isAddingToCart.value = false
+  }
+}
+
+const removeFromWishlist = async (productId) => {
+  try {
+    isRemoving.value = true
+    await wishlistStore.removeFromWishlist(productId)
+    notificationStore.addNotification('Article retiré de la liste de souhaits', 'success')
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error)
+    notificationStore.addNotification('Erreur lors de la suppression', 'error')
+  } finally {
+    isRemoving.value = false
   }
 }
 
@@ -226,9 +187,10 @@ const clearAllWishlist = async () => {
   if (confirm('Êtes-vous sûr de vouloir vider votre liste de souhaits ?')) {
     try {
       await wishlistStore.clearWishlist()
+      notificationStore.addNotification('Liste de souhaits vidée', 'success')
     } catch (error) {
       console.error('Erreur lors du vidage:', error)
-      alert('Une erreur est survenue')
+      notificationStore.addNotification('Une erreur est survenue', 'error')
     }
   }
 }
@@ -250,107 +212,63 @@ onMounted(() => {
 <style scoped>
 .wishlist-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+  background: #f5f5f5;
+  padding-bottom: 140px;
+  overscroll-behavior: none;
 }
 
 .wishlist-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: white;
+  border-bottom: 1px solid #eee;
   padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 .back-btn {
-  padding: 8px;
+  background: none;
   border: none;
-  border-radius: 8px;
-  background: #f8f9fa;
-  color: #666;
+  padding: 8px;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #666;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .back-btn:hover {
-  background: #007bff;
-  color: white;
+  background: #f0f0f0;
 }
 
-.page-title {
-  flex: 1;
+.wishlist-header h1 {
   font-size: 20px;
   font-weight: 600;
   color: #333;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.item-count {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-}
-
-.clear-btn {
-  padding: 8px 12px;
-  border: 1px solid #dc3545;
-  border-radius: 8px;
-  background: white;
-  color: #dc3545;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-}
-
-.clear-btn:hover {
-  background: #dc3545;
-  color: white;
-}
-
-.clear-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* Container scrollable */
 .wishlist-content {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 20px 16px;
 }
 
-/* Loading */
+/* Loading state */
 .loading-state {
   text-align: center;
-  padding: 60px 20px;
-  color: #666;
+  padding: 80px 20px;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #007bff;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  margin: 0 auto 20px;
 }
 
 @keyframes spin {
@@ -358,18 +276,22 @@ onMounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-/* Error */
+/* Error state */
 .error-container {
   text-align: center;
   padding: 60px 20px;
   color: #dc3545;
 }
 
+.error-container svg {
+  margin-bottom: 16px;
+}
+
 .retry-btn {
-  padding: 10px 20px;
   background: #007bff;
   color: white;
   border: none;
+  padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 16px;
@@ -378,62 +300,53 @@ onMounted(() => {
 /* Empty state */
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
 }
 
 .empty-icon {
-  margin: 0 auto 24px;
   color: #ccc;
+  margin-bottom: 24px;
 }
 
 .empty-state h2 {
   font-size: 24px;
+  margin-bottom: 12px;
   color: #333;
-  margin: 0 0 12px;
 }
 
 .empty-state p {
   color: #666;
-  font-size: 16px;
-  margin: 0 0 24px;
+  margin-bottom: 32px;
 }
 
 .browse-btn {
-  padding: 12px 24px;
   background: #007bff;
   color: white;
   text-decoration: none;
+  padding: 12px 24px;
   border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
   display: inline-block;
 }
 
-.browse-btn:hover {
-  background: #0056b3;
-  transform: translateY(-2px);
-}
-
-/* Grid des produits */
+/* Wishlist grid */
 .wishlist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
-  margin-bottom: 40px;
 }
 
 .wishlist-item {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .wishlist-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .item-image {
@@ -457,14 +370,31 @@ onMounted(() => {
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.2s;
+  padding: 8px;
+  border: none;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wishlist-item:hover .remove-btn {
   opacity: 1;
   transform: scale(1);
+}
+
+.remove-btn:hover {
+  background: #dc3545;
+  transform: scale(1.1);
+}
+
+.remove-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(0.8);
 }
 
 .status-badge {
@@ -545,115 +475,67 @@ onMounted(() => {
   color: #999;
 }
 
-.added-date {
-  padding: 8px 16px;
-  background: #f8f9fa;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-}
-
-/* Stats */
-.wishlist-stats {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: space-around;
-  gap: 16px;
-}
-
-.stats-item {
-  text-align: center;
-}
-
-.stats-number {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: #007bff;
-}
-
-.stats-label {
-  display: block;
-  font-size: 14px;
-  color: #666;
-  margin-top: 4px;
-}
-
-/* Floating refresh button */
-.refresh-btn {
+/* Actions flottantes */
+.floating-actions {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 56px;
-  height: 56px;
-  background: #007bff;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.clear-all-btn {
+  background: #dc3545;
   color: white;
   border: none;
-  border-radius: 50%;
-  box-shadow: 0 4px 20px rgba(0,123,255,0.3);
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   transition: all 0.2s;
-  z-index: 1000;
 }
 
-.refresh-btn:hover:not(:disabled) {
-  background: #0056b3;
+.clear-all-btn:hover:not(:disabled) {
+  background: #c82333;
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0,123,255,0.4);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
 
-.refresh-btn:disabled {
-  opacity: 0.5;
+.clear-all-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .wishlist-header {
-    padding: 12px 16px;
-  }
-  
-  .page-title {
-    font-size: 18px;
-  }
-  
-  .wishlist-content {
-    padding: 16px;
-  }
-  
   .wishlist-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 16px;
   }
   
-  .wishlist-stats {
-    flex-direction: column;
-    gap: 12px;
+  .wishlist-content {
+    padding: 16px 12px;
   }
   
-  .stats-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
+  .floating-actions {
+    left: 16px;
+    right: 16px;
+    transform: none;
   }
   
-  .header-actions {
-    flex-direction: column;
-    gap: 8px;
+  .clear-all-btn {
+    width: 100%;
+    justify-content: center;
   }
-  
-  .refresh-btn {
-    bottom: 1rem;
-    right: 1rem;
-    width: 48px;
-    height: 48px;
+}
+
+@media (max-width: 480px) {
+  .wishlist-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

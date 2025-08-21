@@ -327,9 +327,11 @@ onMounted(() => {
 .back-btn {
   background: none;
   border: none;
-  font-size: 18px;
+  padding: 8px;
   cursor: pointer;
-  color: #333;
+  color: #666;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .back-btn:hover {
