@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { EventEmitter } = require('events');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Routes imports
 const authRoutes = require('./routes/authRoutes.js');
@@ -21,8 +23,23 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://js.stripe.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
+    },
+  },
+}));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100
+}));
 
 // Routes
+app.use('/api/', limiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);

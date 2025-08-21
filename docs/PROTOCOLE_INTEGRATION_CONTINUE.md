@@ -5,7 +5,6 @@
 - **Jobs parallèles :**
   - Backend Tests (Jest)
   - Frontend Build (Vite)
-  - Security Audit (npm audit)
 
 ## Séquences d'intégration
 1. Checkout code
