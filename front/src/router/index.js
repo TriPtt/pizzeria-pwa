@@ -13,6 +13,7 @@ import PaymentCancel from '../views/PaymentCancel.vue'
 import Reservations from '../views/Reservations.vue';
 import MyReservations from '../views/MyReservations.vue';
 import Menu from '../views/Menu.vue';
+import Contact from '../views/Contact.vue';
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
@@ -88,6 +89,11 @@ const routes = [
     path: '/products',
     name: 'menu',
     component: Menu
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: Contact
   }
 ]
 

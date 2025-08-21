@@ -72,11 +72,7 @@
           <div class="footer-col">
             <h4 class="footer-title">Liens</h4>
             <nav class="footer-nav">
-              <a href="#" class="footer-link">Mentions légales</a>
-              <a href="#" class="footer-link">CGV</a>
-              <a href="#" class="footer-link">Politique de confidentialité</a>
-              <a href="#" class="footer-link">Contact</a>
-              <a href="#" class="footer-link">Allergènes</a>
+              <router-link to="/contact" class="footer-link">Contact</router-link>
             </nav>
           </div>
         </div>
@@ -126,7 +122,7 @@ const props = defineProps({
       lundi: 'Fermé',
       mardi: '18h30 - 21h30', 
       mercredi: '18h30 - 21h30',
-      jeudi: '11h30 - 13h30, 18h30 - 21h30',
+      jeudi: '11h30 - 13h30 / 18h30 - 21h30',
       vendredi: '18h00 - 22h00',
       samedi: '18h00 - 22h00',
       dimanche: '18h30 - 21h30'

@@ -38,6 +38,12 @@ app.use(rateLimit({
   max: 100
 }));
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limite chaque IP à 100 requêtes par fenêtre
+  message: "Trop de requêtes, veuillez réessayer plus tard."
+});
+
 // Routes
 app.use('/api/', limiter);
 app.use("/api/auth", authRoutes);
