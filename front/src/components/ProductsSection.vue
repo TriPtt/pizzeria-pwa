@@ -6,7 +6,7 @@
     <!-- Header de section -->
     <div class="section-header">
       <h3 class="section-title">{{ sectionTitle }}</h3>
-      <button class="see-all-btn" @click="handleSeeAll">
+      <button class="see-all-btn" @click="handleSeeAll" title="Voir tous les produits">
         Voir tout <i class="ri-arrow-right-s-line"></i>
       </button>
     </div>

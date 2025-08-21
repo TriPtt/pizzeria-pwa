@@ -141,6 +141,7 @@ const handleImageError = () => {
               'loading': wishlistAnimating
             }"
             :disabled="wishlistAnimating"
+            title="Ajouter aux favoris"
           >
             <transition name="fade" mode="out-in">
               <i v-if="wishlistAnimating" key="loading" class="ri-loader-4-line spinning"></i>
@@ -178,6 +179,7 @@ const handleImageError = () => {
           :class="{ 
             'loading-spinner': isAnimating
           }"
+          title="Ajouter au panier"
         >
           <transition name="fade" mode="out-in">
             <i v-if="isAnimating" key="loading" class="ri-loader-4-line spinning"></i>

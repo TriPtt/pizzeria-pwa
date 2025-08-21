@@ -4,18 +4,14 @@
       <h1 class="header-title">{{ title }}</h1>
     </div>
     <div class="header-actions">
-      <button class="header-btn" @click="$emit('openCart')">
+      <button class="header-btn" @click="$emit('openCart')" title="Ouvrir le panier">
         <i class="ri-shopping-cart-line"></i>
         <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
       </button>
-      <button class="header-btn" @click="$emit('openSearch')">
+      <button class="header-btn" @click="$emit('openSearch')" title="Ouvrir la recherche">
         <i class="ri-search-line"></i>
       </button>
-      <button 
-        class="header-btn logout-btn" 
-        @click="handleLogout" 
-        title="Se déconnecter"
-      >
+      <button class="header-btn logout-btn" @click="handleLogout" title="Se déconnecter">
         <i class="ri-logout-box-line"></i>
       </button>
     </div>

@@ -90,6 +90,7 @@ pizzeria-pwa/
 │   │   ├── utils/             # Utilitaires (hash, JWT)
 │   │   └── app.js             # Configuration Express
 │   ├── tests/                 # Tests unitaires Jest
+|   ├── scripts/               # Scripts d'automatisations
 │   └── package.json
 ├── docs/                      # Documentation technique
 │   ├── PROTOCOLE_DEPLOIEMENT_CONTINU.md
@@ -119,15 +120,6 @@ git clone https://github.com/TriPtt/pizzeria-pwa.git
 cd pizzeria-pwa
 ```
 
-### 2. Configuration de la base de données
-```bash
-# Créer la base de données PostgreSQL
-createdb pizzeria_db
-
-# Importer le schéma (si disponible)
-psql -d pizzeria_db -f database/schema.sql
-```
-
 ### 3. Installation Backend
 ```bash
 cd back
@@ -135,21 +127,20 @@ npm install
 
 # Configuration des variables d'environnement
 cp .env.example .env
-# Éditer .env avec vos valeurs :
-# DATABASE_URL=postgresql://user:password@localhost:5432/pizzeria_db
-# JWT_SECRET=your_jwt_secret_key
-# STRIPE_SECRET_KEY=sk_test_...
+# Éditer .env avec vos valeurs (détails dans le fichier)
+
+#Initialise automatiquement la DB
+npm run setup
 ```
 
 ### 4. Installation Frontend
 ```bash
-cd ../front
+cd front
 npm install
 
 # Configuration des variables d'environnement
 cp .env.example .env
-# Éditer .env avec l'URL de votre API
-# VITE_API_URL=http://localhost:5000
+# Éditer .env avec vos valeurs (détails dans le fichier)
 ```
 
 ## Utilisation
@@ -177,12 +168,12 @@ npm run dev  # Lance Vite dev server sur le port 5173
 ### Tests Backend (Jest)
 ```bash
 cd back
-npm test                    # Exécuter tous les tests
+npm test                   # Exécuter tous les tests
 npm run test:watch         # Mode watch
 npm run test:coverage      # Rapport de couverture
 ```
 
-Couverture actuelle : 85% (branches: 70%, fonctions: 80%, lignes: 80%)
+Couverture actuelle : 85% (branches: 80%, fonctions: 85%, lignes: 82%)
 
 ### Tests d'intégration
 Les tests E2E sont exécutés automatiquement dans la CI/CD via GitHub Actions.
@@ -192,7 +183,6 @@ Les tests E2E sont exécutés automatiquement dans la CI/CD via GitHub Actions.
 ### Automatique (GitHub Actions)
 Le déploiement se déclenche automatiquement sur :
 - **Push sur `main`** → Déploiement production
-- **Push sur `develop`** → Déploiement staging
 
 ### Manuel
 ```bash
@@ -208,7 +198,6 @@ npm run build
 
 ### Variables d'environnement de production
 ```env
-NODE_ENV=production
 DATABASE_URL=postgresql://...
 JWT_SECRET=secure_random_key
 STRIPE_SECRET_KEY=sk_live_...
@@ -259,11 +248,11 @@ STRIPE_SECRET_KEY=sk_live_...
 
 ## Métriques de qualité
 
-- ✅ **Tests** : 85% de couverture
-- ✅ **Sécurité** : OWASP Top 10 couvert
-- ✅ **Accessibilité** : RGAA 4.1 niveau AA
-- ✅ **Performance** : Lighthouse Score > 90
-- ✅ **PWA** : Progressive Web App optimisée
+- **Tests** : 85% de couverture
+- **Sécurité** : OWASP Top 10 couvert
+- **Accessibilité** : RGAA 4.1 niveau AA
+- **Performance** : Lighthouse Score > 90
+- **PWA** : Progressive Web App optimisée
 
 ## Contribution
 
