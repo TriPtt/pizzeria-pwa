@@ -8,12 +8,9 @@
 - **Outils de gestion de sources :** Git + GitHub
 
 ## Séquences de déploiement
-1. **Push sur branche develop** → Tests automatiques
-2. **Merge sur main** → Build + Tests + Déploiement staging
-3. **Tag release** → Déploiement production
+- **Merge/push sur main** → Build + Tests + Déploiement staging
 
 ## Critères de qualité et performance
 - Tests unitaires > 80% de couverture
 - Temps de chargement < 3s
 - Lighthouse Score > 90
-- Sécurité : npm audit clean

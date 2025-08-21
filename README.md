@@ -1,4 +1,4 @@
-# 🍕 Pizzeria PWA - LA FAVOLA
+# Pizzeria PWA - LA FAVOLA
 
 > **Application Progressive Web App (PWA) pour la modernisation des services d'une pizzeria**  
 > Projet réalisé dans le cadre de la certification RNCP39583 - Expert en Développement Logiciel
@@ -7,6 +7,9 @@
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](./back/coverage)
 [![Security](https://img.shields.io/badge/security-OWASP-blue)](./docs/SECURITE_OWASP.md)
 [![Accessibility](https://img.shields.io/badge/accessibility-RGAA%204.1-green)](./docs/ACCESSIBILITE.md)
+
+## Lien du projet déployé
+[https://pizzeria-pwa-rho.vercel.app/](https://pizzeria-pwa-rho.vercel.app/)
 
 ## Table des matières
 
@@ -120,7 +123,7 @@ git clone https://github.com/TriPtt/pizzeria-pwa.git
 cd pizzeria-pwa
 ```
 
-### 3. Installation Backend
+### 2. Installation Backend
 ```bash
 cd back
 npm install
@@ -133,7 +136,7 @@ cp .env.example .env
 npm run setup
 ```
 
-### 4. Installation Frontend
+### 3. Installation Frontend
 ```bash
 cd front
 npm install
@@ -268,8 +271,6 @@ Ce projet a été réalisé dans le cadre de la certification **RNCP39583 - Expe
 
 ## Versions
 
-| Version | Date | Description |
-|---------|------|-------------|
-| 1.0.0 | 2025-08 | Version initiale avec toutes les fonctionnalités |
+Voir Changelog
 
 ---

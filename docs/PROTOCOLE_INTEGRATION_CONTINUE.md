@@ -1,7 +1,7 @@
 # Protocole d'Intégration Continue
 
 ## Workflow GitHub Actions
-- **Trigger :** Push/PR sur main/develop
+- **Trigger :** Push/PR sur main
 - **Jobs parallèles :**
   - Backend Tests (Jest)
   - Frontend Build (Vite)

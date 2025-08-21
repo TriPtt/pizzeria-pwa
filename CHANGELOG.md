@@ -32,3 +32,13 @@
 ### Enhanced
 - **Error Handling:** Amélioration de la journalisation des erreurs Stripe
 - **Performance:** Ajout du suivi des temps de réponse pour les routes `/api/orders` et `/api/stripe`
+
+## [1.0.3] - 2025-08-21
+### Added
+- **Database:** Ajout du script pour setup la database à l'aide de la commande npm run setup
+- **Account:** Possibilité de supprimer son compte
+
+### Enhanced
+- **Accessibility:** Score accéssibilité Lighthouse > 90
+- **Graphics:** Amélioration du header des pages go back et de la page mes réservations
+- **MarkDown:** Correction du readme et des documentations associés

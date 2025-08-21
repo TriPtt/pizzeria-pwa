@@ -2,6 +2,9 @@
 
 ## Référentiel choisi : RGAA 4.1 + WCAG 2.1 AA
 
+## Score Lighthouse > 90 (92)
+![alt text](images/accessibility.png)
+
 ## Actions mises en œuvre
 - **Navigation clavier** : Tous les éléments accessibles au Tab
 - **Lecteurs d'écran** : Attributs aria-label, alt sur images
@@ -13,4 +16,4 @@
 ## Tests réalisés
 - Validation avec axe-core
 - Tests manuels navigation clavier
-- Tests avec lecteur d'écran
+- Tests avec lighthouse

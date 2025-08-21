@@ -4,7 +4,6 @@
 1. **Tests automatisés** : Échecs CI/CD
 2. **Logs applicatifs** : Monitoring erreurs
 3. **Retours utilisateurs** : Support client
-4. **Audit sécurité** : npm audit
 
 ## Classification des bogues
 - **Critique** : Bloquant fonctionnel (< 2h)
