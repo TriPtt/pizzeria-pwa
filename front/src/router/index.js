@@ -36,22 +36,26 @@ const routes = [
   {
     path: '/cart',
     name: 'cart',
-    component: CartView
+    component: CartView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/checkout',
     name: 'checkout',
-    component: OrderView
+    component: OrderView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'profile',
-    component: ProfilView
+    component: ProfilView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/wishlist',
     name: 'wishlist',
-    component: WishlistView
+    component: WishlistView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/orders',
@@ -62,17 +66,20 @@ const routes = [
   {
     path: '/order-confirmation',
     name: 'order-confirmation',
-    component: OrderConfirmation
+    component: OrderConfirmation,
+    meta: { requiresAuth: true }
   },
   {
     path: '/payment-success',
     name: 'payment-success',
-    component: PaymentSuccess
+    component: PaymentSuccess,
+    meta: { requiresAuth: true }
   },
   {
     path: '/payment-cancel',
     name: 'payment-cancel',
-    component: PaymentCancel
+    component: PaymentCancel,
+    meta: { requiresAuth: true }
   },
   {
     path: '/reservations',
@@ -84,6 +91,7 @@ const routes = [
     path: '/mes-reservations',
     name: 'MesReservations',
     component: MyReservations,
+    meta: { requiresAuth: true }
   },
   {
     path: '/products',
@@ -99,7 +107,23 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      }
+    }
+    return { 
+      top: 0, 
+      left: 0,
+      behavior: 'smooth'
+    }
+  }
 })
 
 router.beforeEach((to, from, next) => {

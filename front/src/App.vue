@@ -42,7 +42,6 @@ const showBottomNav = computed(() => {
          route.name === 'cart'
 })
 
-// 🎯 Ajout/suppression de classe CSS sur le body
 watch(showBottomNav, (hasBottomNav) => {
   if (hasBottomNav) {
     document.body.classList.add('has-bottom-nav')
@@ -52,7 +51,7 @@ watch(showBottomNav, (hasBottomNav) => {
 }, { immediate: true })
 
 const handleTabChange = (tab) => {
-  // console.log('🔄 Changement onglet:', tab.label)
+  // console.log('Changement onglet:', tab.label)
 }
 </script>
 

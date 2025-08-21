@@ -133,6 +133,12 @@ const handleScroll = () => {
 const handleNavClick = (item) => {
   if (route.path !== item.path) {
     router.push(item.path)
+    setTimeout(() => {
+      const appElement = document.getElementById('app')
+      if (appElement) {
+        appElement.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }, 50)
   }
 
   emit('tabChange', item)
