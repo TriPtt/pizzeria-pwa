@@ -139,6 +139,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const deleteAccount = async () => {
+    if (!user.value || !token.value) {
+      throw new Error('Utilisateur non authentifié')
+    }
+
+    try {
+      const response = await fetch(`${api}/api/auth/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token.value}`
+        }
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erreur suppression compte')
+      }
+
+      logout()
+      return { message: 'Compte supprimé avec succès' }
+    } catch (error) {
+      console.error('Erreur delete account:', error)
+      throw error
+    }
+  }
+
 
   const setAuth = (userData, authToken) => {
     user.value = userData
@@ -189,6 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     updateUser,
+    deleteAccount,
     setAuth,
     initAuth
   }

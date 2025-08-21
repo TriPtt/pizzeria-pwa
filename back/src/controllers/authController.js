@@ -94,10 +94,27 @@ const login = async (req, res) => {
   }
 };
 
+// Delete account function
+const deleteAccount = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    }
+
+    res.status(200).json({ message: 'Compte supprimé avec succès.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+};
+
 
 // Function to get the connected user's information
 const me = (req, res) => {
   res.json({ user: req.user });
 };
 
-module.exports = { register, login, me };
+module.exports = { register, login, deleteAccount, me };

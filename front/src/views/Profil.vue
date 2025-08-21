@@ -29,7 +29,7 @@
           <div class="user-details">
             <h3>{{ user?.name || 'Nom non renseigné' }}</h3>
             <p>{{ user?.email || 'Email non renseigné' }}</p>
-            <!-- ✅ Affiche le phone seulement s'il existe -->
+            <!-- Affiche le phone seulement s'il existe -->
             <p v-if="user?.phone">{{ user.phone }}</p>
             <p v-else class="placeholder-text">Téléphone non renseigné</p>
           </div>
@@ -42,7 +42,7 @@
         <div class="menu-item" @click="$router.push('/orders')">
           <div class="menu-item-content">
             <span>Mes commandes</span>
-            <!-- ✅ Affiche le nombre de commandes -->
+            <!-- Affiche le nombre de commandes -->
             <span v-if="orderCount > 0" class="order-count">{{ orderCount }}</span>
             <span v-else class="no-orders">Aucune commande</span>
           </div>
@@ -76,6 +76,16 @@
         </button>
       </div>
 
+      <!-- Bouton Delete -->
+      <div class="logout-section">
+        <button @click="handleDeleteAccount" class="delete-btn" :disabled="authStore.isLoading">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v4m0 4h.01" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          {{ authStore.isLoading ? 'Suppression...' : 'Supprimer le compte' }}
+        </button>
+      </div>
+
       <!-- Debug info (enlève ça en prod) -->
       <div v-if="showDebug" class="debug-info">
         <h4>Debug Info:</h4>
@@ -95,7 +105,7 @@ const authStore = useAuthStore()
 const ordersStore = useOrdersStore()
 const router = useRouter()
 
-// Pour debugger (mets à true si tu veux voir les données)
+// Pour debugger
 const showDebug = ref(false)
 
 // Computed
@@ -132,6 +142,19 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
     alert('Erreur lors de la déconnexion')
+  }
+}
+
+const handleDeleteAccount = async () => {
+  try {
+    const confirmDelete = confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')
+    if (!confirmDelete) return
+    
+    await authStore.deleteAccount()
+    router.push('/login')
+  } catch (error) {
+    console.error('Erreur lors de la suppression du compte:', error)
+    alert('Erreur lors de la suppression du compte')
   }
 }
 
@@ -402,6 +425,28 @@ onMounted(() => {
 
 .logout-btn:hover {
   background: #007bff;
+  color: white;
+}
+
+.delete-btn {
+  width: 100%;
+  background: white;
+  border: 2px solid #dc2626;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
   color: white;
 }
 
