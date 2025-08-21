@@ -10,6 +10,7 @@ const orderRoutes = require('./routes/orderRoutes.js');
 const reservationRoutes = require('./routes/reservationRoutes.js');
 const stripeRoutes = require('./routes/stripeRoutes.js');
 const wishlistRoutes = require('./routes/wishlistRoutes.js');
+const healthRoutes = require('./routes/healthRoutes.js');
 
 // Configure dotenv et EventEmitter
 dotenv.config();
@@ -29,6 +30,7 @@ app.use("/api/reservations", reservationRoutes);
 app.use('/api/checkout', stripeRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/health', healthRoutes);
 
 // Export pour les tests
 module.exports = app;
