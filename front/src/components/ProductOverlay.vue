@@ -3,6 +3,8 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useCartStore } from '../stores/cartStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
 import { useIngredientsStore } from '../stores/ingredientsStore'
+import { useReviewsStore } from '../stores/reviewsStore' 
+import ReviewsModal from './ReviewsModal.vue' 
 
 const props = defineProps({
   product: Object,
@@ -15,6 +17,7 @@ const emit = defineEmits(['close'])
 const cartStore = useCartStore()
 const favoritesStore = useFavoritesStore()
 const ingredientsStore = useIngredientsStore()
+const reviewsStore = useReviewsStore()
 
 // State
 const selectedSupplements = ref([])
@@ -24,10 +27,15 @@ const ingredientsData = ref({
   supplements: [],
   removableIngredients: []
 })
+const showReviews = ref(false)
 
 // Computed
 const isFavorite = computed(() => 
   favoritesStore.isFavorite(props.product?.id)
+)
+
+const reviewsData = computed(() => 
+  reviewsStore.getProductReviews(props.product?.id)
 )
 
 const supplements = computed(() => ingredientsData.value.supplements)
@@ -44,6 +52,10 @@ const finalPrice = computed(() => {
 
 const isPizza = computed(() => props.product?.type === 'pizza')
 
+const renderStars = (rating) => {
+  return Array.from({ length: 5 }, (_, i) => i < Math.round(rating))
+}
+
 // Methods
 const loadIngredients = async () => {
   if (!props.product?.id || !isPizza.value) return
@@ -54,6 +66,20 @@ const loadIngredients = async () => {
   } catch (error) {
     console.error('❌ Erreur chargement ingrédients:', error)
   }
+}
+
+const loadReviews = async () => {
+  if (!props.product?.id) return
+  
+  try {
+    await reviewsStore.fetchProductReviews(props.product.id)
+  } catch (error) {
+    console.error('❌ Erreur chargement avis:', error)
+  }
+}
+
+const openReviews = () => {
+  showReviews.value = true
 }
 
 const handleBackdropClick = () => {
@@ -109,6 +135,7 @@ watch(() => props.show, (newValue) => {
   if (newValue) {
     document.body.style.overflow = 'hidden'
     loadIngredients()
+    loadReviews()
   } else {
     document.body.style.overflow = ''
     // Reset selections
@@ -164,19 +191,23 @@ watch(() => props.show, (newValue) => {
               </div>
 
               <!-- Rating section (garde ton code existant) -->
-              <div class="product-rating">
+              <div class="product-rating" @click="openReviews">
                 <div class="rating-score">
-                  <span class="score">4.5</span>
+                  <span class="score">{{ reviewsData.averageRating || 0 }}</span>
                   <div class="stars">
-                    <i v-for="n in 5" :key="n" 
-                       :class="n <= 4.5 ? 'ri-star-fill' : 'ri-star-line'"
-                       class="star"
+                    <i 
+                      v-for="(filled, index) in renderStars(reviewsData.averageRating || 0)"
+                      :key="index" 
+                      :class="filled ? 'ri-star-fill' : 'ri-star-line'"
+                      class="star"
                     ></i>
                   </div>
                 </div>
                 <div class="rating-details">
                   <span>Note moyenne</span>
-                  <div class="rating-meta">43 notes et 23 avis</div>
+                  <div class="rating-meta">
+                    {{ reviewsData.totalRatings }} notes et {{ reviewsData.totalReviews }} avis
+                  </div>
                 </div>
                 <button class="rating-arrow">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -256,6 +287,13 @@ watch(() => props.show, (newValue) => {
         </div>
       </div>
     </transition>
+    <!-- Modal des avis -->
+    <ReviewsModal 
+      :show="showReviews"
+      :product-id="product?.id"
+      :product-name="product?.name"
+      @close="showReviews = false"
+    />
   </teleport>
 </template>
 
@@ -444,6 +482,13 @@ watch(() => props.show, (newValue) => {
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
   margin-bottom: 32px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 8px;
+}
+
+.product-rating:hover {
+  background: #f8f9fa;
 }
 
 .rating-score {
