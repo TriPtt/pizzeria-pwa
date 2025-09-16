@@ -28,7 +28,7 @@ INSERT INTO products (name, description, price, type, image, vegetarian) VALUES
 ('Coca-Cola Zero 33cl', 'Boisson gazeuse sans sucre', 2.50, 'boisson', 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=400&fit=crop', true),
 ('Sprite 33cl', 'Boisson gazeuse citron-lime', 2.50, 'boisson', 'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=400&h=400&fit=crop', true),
 ('Fanta Orange 33cl', 'Boisson gazeuse à l''orange', 2.50, 'boisson', 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400&h=400&fit=crop', true),
-('Eau plate 50cl', 'Eau de source naturelle', 1.80, 'boisson', 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop', true),
+('Eau plate 50cl', 'Eau de source naturelle', 1.80, 'boisson', 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=400&h=400&fit=crop', true),
 ('Eau pétillante 50cl', 'Eau gazeuse naturelle', 1.80, 'boisson', 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=400&h=400&fit=crop', true),
 ('Jus d''orange 25cl', 'Pur jus d''orange pressée', 3.20, 'boisson', 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&h=400&fit=crop', true),
 ('Bière artisanale 33cl', 'Bière blonde locale', 4.50, 'boisson', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop', true);

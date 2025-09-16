@@ -11,10 +11,6 @@
           <span v-if="badge" class="featured-badge">{{ badge }}</span>
           <h2 class="featured-title">{{ title }}</h2>
           <p class="featured-description">{{ description }}</p>
-          <button v-if="showButton" class="featured-cta">
-            {{ buttonText }}
-            <i class="ri-arrow-right-line"></i>
-          </button>
         </div>
       </div>
     </div>
